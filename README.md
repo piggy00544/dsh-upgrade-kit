@@ -11,6 +11,16 @@
 | 3 | 🌐 **dsh-research-mcp** 外网搜集 | 多引擎国际搜索（DDG/HN/arXiv/GitHub）+ 网页全文抓取 + 站点经验，**零 API key** | 模型自动获得 `mcp__research__search` 等 3 个工具 |
 | 4 | 👁 **vision-bridge** 视觉桥接 | 无视觉模型也能看图：描述 / OCR / 报错截图 / UI 元素坐标 | 在聊天里**贴图说"看这张图"** 自动触发 |
 
+## 效果预览
+
+**dsh-cost · 用量与费用面板**（侧栏 ¥ 按钮）：
+
+![dsh-cost 面板](assets/screenshots/cost-panel.png)
+
+**dsh-plugin-file-preview · 附件预览面板**（会话头部「附件」按钮）：
+
+![文件预览面板](assets/screenshots/file-preview-panel.png)
+
 ## 一键安装
 
 ```bash
