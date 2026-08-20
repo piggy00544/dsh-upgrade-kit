@@ -22,7 +22,13 @@
 
 ![文件预览面板](assets/screenshots/file-preview-panel.png)
 
-## 一键安装
+## 安装（两种方式）
+
+**方式 A · macOS 一键安装包（推荐小白）**
+
+到 [GitHub Releases](https://github.com/piggy00544/dsh-upgrade-kit/releases) 下载 `DSH-Upgrade-Kit-*.dmg`，双击装上，打开填 DeepSeek API key 就能用。DSH 本体和五件装备全部内嵌，无需装 Node/终端。
+
+**方式 B · 命令行（已装 DSH 的用户）**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/piggy00544/dsh-upgrade-kit/main/install.sh | bash
@@ -75,6 +81,6 @@ launchctl bootout gui/$(id -u)/com.deepseek.dsh-wechat-daemon 2>/dev/null || tru
 
 ## 许可
 
-MIT License。vision-bridge 核心脚本 vendored 自 [JochenYang/luma-mcp](https://github.com/JochenYang/luma-mcp)（MIT）。
+MIT License。vision-bridge 核心脚本 vendored 自 [JochenYang/luma-mcp](https://github.com/JochenYang/luma-mcp)（MIT）。macOS 安装包构建见 [macos/](macos/)。
 
 > 本仓库是第三方社区项目，与 DeepSeek 官方无关。"DeepSeek Harness" 为 DeepSeek 注册商标，本页仅在说明兼容对象时提及。
