@@ -1,0 +1,57 @@
+#!/bin/bash
+# dsh-notify — post a macOS notification from the DSH agent.
+#
+# Usage:
+#   dsh-notify "标题" "内容" [声音]
+#   dsh-notify --title "标题" --message "内容" [--sound Glass]
+#
+# Sounds: Basso, Blow, Bottle, Frog, Funk, Glass, Hero, Morse, Ping, Pop,
+#         Purr, Sosumi, Submarine, Tink, default (omit for system default)
+#
+# Safe for use from any agent/script: args are passed to osascript via argv,
+# so quotes and special characters in the message are fine.
+
+usage() {
+  echo "usage: dsh-notify [--title T] [--message M] [--sound S]  |  dsh-notify TITLE MESSAGE [SOUND]" >&2
+  exit 2
+}
+
+TITLE="DeepSeek Harness"
+MESSAGE=""
+SOUND="Glass"
+
+if [ "$1" = "--title" ]; then
+  shift
+  [ -z "$1" ] && usage
+  TITLE="$1"; shift
+  case "$1" in
+    --message) shift; MESSAGE="${1:-}"; shift ;;
+    *) usage ;;
+  esac
+  case "$1" in
+    --sound) shift; SOUND="${1:-Glass}"; shift ;;
+    "") ;;
+    *) usage ;;
+  esac
+  [ $# -ne 0 ] && usage
+else
+  [ $# -lt 2 ] && usage
+  TITLE="$1"; MESSAGE="$2"
+  [ -n "${3:-}" ] && SOUND="$3"
+fi
+
+if [ -z "$MESSAGE" ]; then usage; fi
+
+# Prefer the native DeepSeek Harness app: proper attribution + click-to-open.
+# Fall back to osascript when the app isn't running.
+if pgrep -q -x DeepSeekHarness && [ -x /usr/bin/python3 ]; then
+  enc() { /usr/bin/python3 -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1]))' "$1"; }
+  /usr/bin/open "dsh://notify?title=$(enc "$TITLE")&message=$(enc "$MESSAGE")"
+  exit 0
+fi
+
+osascript \
+  -e 'on run argv' \
+  -e 'display notification (item 2 of argv) with title (item 1 of argv) sound name (item 3 of argv)' \
+  -e 'end run' \
+  "$TITLE" "$MESSAGE" "$SOUND"

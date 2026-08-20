@@ -93,11 +93,42 @@ else
   say "vision-bridge 技能已安装到 $SKILL_DIR/vision-bridge"
 fi
 
-# ---- 7. 收尾 ----
+# ---- 7. wechat-bridge：微信双向通道 ----
+BIN_DIR="$HOME/bin"
+mkdir -p "$BIN_DIR"
+for f in dsh-wechat.mjs dsh-wechat-daemon.mjs dsh-notify dsh-notify-wechat; do
+  if [ ! -f "$BIN_DIR/$f" ]; then
+    cp "$KIT_HOME/plugins/wechat-bridge/$f" "$BIN_DIR/"
+    chmod +x "$BIN_DIR/$f"
+    say "已安装 $f → $BIN_DIR"
+  else
+    warn "$f 已存在，跳过"
+  fi
+done
+
+# headless 持久会话补丁（幂等）
+node "$KIT_HOME/plugins/wechat-bridge/patch-headless.mjs" || warn "headless 补丁未打上（不影响其他组件，详见 wechat-bridge README）"
+
+# macOS LaunchAgent（微信收件守护）
+if [ "$(uname -s)" = "Darwin" ] && command -v launchctl >/dev/null 2>&1; then
+  PLIST="$HOME/Library/LaunchAgents/com.deepseek.dsh-wechat-daemon.plist"
+  if [ ! -f "$PLIST" ]; then
+    mkdir -p "$HOME/Library/LaunchAgents"
+    NODE_BIN="$(command -v node || echo /opt/homebrew/bin/node)"
+    sed -e "s|__KIT_HOME__|$KIT_HOME|g" -e "s|__HOME__|$HOME|g" -e "s|__NODE_BIN__|$NODE_BIN|g" \
+      "$KIT_HOME/plugins/wechat-bridge/com.deepseek.dsh-wechat-daemon.plist.template" > "$PLIST"
+    launchctl bootstrap "gui/$(id -u)" "$PLIST" 2>/dev/null || true
+    say "微信收件守护已注册（开机自启）"
+  else
+    warn "LaunchAgent 已存在，跳过"
+  fi
+fi
+
+# ---- 8. 收尾 ----
 cat <<'EOF'
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  全部完成！还差最后两步：
+  全部完成！还差最后三步：
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 1) 重启 DSH web（macOS 常用方式）：
    launchctl kickstart -k gui/$(id -u)/com.deepseek.dsh-web
@@ -107,10 +138,13 @@ cat <<'EOF'
       ~/.config/vision-bridge/config.json
    chmod 600 ~/.config/vision-bridge/config.json
    # 编辑填入任一 provider 的 apiKey（阿里百炼/硅基流动/智谱/MiniMax）
+3) 微信扫码（可选）：~/bin/dsh-wechat.mjs login
+   微信里给登录的 bot 发消息即可指挥 DSH，结果自动回微信
 
 重启后：
 • 侧栏底部出现 ¥ 按钮 → 用量与费用面板
 • 会话头部出现「附件」按钮 → 文件预览面板
 • 模型多出 mcp__research__search / fetch / site_hint 三个搜集工具
 • 贴图说"看这张图" → 自动走视觉桥接
+• 微信发消息 → 本机执行 → 结果回微信（会话挂进 WebUI）
 EOF

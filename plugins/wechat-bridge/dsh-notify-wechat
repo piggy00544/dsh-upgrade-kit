@@ -1,0 +1,34 @@
+#!/bin/bash
+# dsh-notify-wechat — push a DSH agent notification to the user's WeChat
+# via the DIRECT WeChat iLink bot API client (dsh-wechat).
+# No OpenClaw / gateway in the path.
+#
+# Usage:
+#   dsh-notify-wechat "标题" "内容"
+#   dsh-notify-wechat --message "内容"   (no title)
+#
+# Credentials live at ~/.local/share/dsh-wechat/credentials.json (0600);
+# this script only forwards argv and never prints credential values.
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+case "$1" in
+  --message) shift; TITLE=""; ;;
+esac
+
+if [ $# -ge 2 ]; then
+  TITLE="$1"; shift
+fi
+
+BODY="$*"
+if [ -n "${TITLE:-}" ] && [ -n "$BODY" ]; then
+  TEXT="【$TITLE】$BODY"
+elif [ -n "${TITLE:-}" ]; then
+  TEXT="$TITLE"
+else
+  TEXT="$BODY"
+fi
+
+[ -z "$TEXT" ] && { echo "usage: dsh-notify-wechat [标题] 内容" >&2; exit 2; }
+
+exec node "$SCRIPT_DIR/dsh-wechat.mjs" send "${TITLE:-}" "$BODY"

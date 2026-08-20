@@ -1,6 +1,6 @@
 ---
 name: dsh-upgrade-kit
-description: DSH 装备升级套件：token 费用面板（dsh-cost）、会话文件预览（dsh-plugin-file-preview）、外网搜集（dsh-research-mcp，工具名 mcp__research__*）、视觉桥接（vision-bridge，给无视觉模型看图）。已安装时，用户问"花了多少钱/预览这个文件/搜一下外网/看这张图"直接按对应组件办事；未安装时给出 install.sh 一键安装命令。
+description: DSH 装备升级套件：token 费用面板（dsh-cost）、会话文件预览（dsh-plugin-file-preview）、外网搜集（dsh-research-mcp，工具名 mcp__research__*）、视觉桥接（vision-bridge，给无视觉模型看图）、微信双向通道（dsh-wechat-bridge，微信发消息→本机执行→回微信）。已安装时，用户问"花了多少钱/预览这个文件/搜一下外网/看这张图"直接按对应组件办事；未安装时给出 install.sh 一键安装命令。
 metadata:
   version: "0.1.0"
   date: "2026-08-20"
@@ -8,7 +8,7 @@ metadata:
 
 # dsh-upgrade-kit — DSH 装备升级套件
 
-四件装备给 DeepSeek Harness：看钱、看文件、搜外网、看图片。
+五件装备给 DeepSeek Harness：看钱、看文件、搜外网、看图片、通微信。
 
 ## 组件速查
 
@@ -18,6 +18,7 @@ metadata:
 | dsh-plugin-file-preview | 用户想看会话产物 / 附件 | 纯 UI 插件：产物卡片在 assistant 回合尾部，附件面板在会话头部「附件」按钮；无需 agent 动作，说明按钮位置即可 |
 | dsh-research-mcp | "搜外网 / 查英文资料 / 抓这个网页" | 工具 `mcp__research__search`（engines: ddg,hn,arxiv,github,bing）、`mcp__research__fetch`（全文抓取）、`mcp__research__site_hint`（站点经验）；走 `HTTP_PROXY/HTTPS_PROXY` 环境变量，零 key |
 | vision-bridge | 贴图 / "看这张图 / OCR / 识别" | 跑 `node ~/.agents/skills/vision-bridge/scripts/vision.mjs "<图片路径>" "<问题>"`；模式自动路由（ocr/ui/debug/describe）；ui 模式坐标 0-1000 归一化，配合浏览器自动化换算点击位置；key 在 `~/.config/vision-bridge/config.json` |
+| dsh-wechat-bridge | 用户从微信发消息来（收件守护自动执行，结果已回微信） | 守护 `dsh-wechat-daemon.mjs` 常驻；微信发"清空记忆/重置会话"即换新会话；任务结果经 web RPC 挂进 WebUI 侧边栏（session-wechat-*）；主动推送用 `dsh-notify-wechat "标题" "内容"`；登录态过期（ret=-14）提醒用户重跑 `dsh-wechat.mjs login` |
 
 ## 安装（未装时）
 
@@ -25,7 +26,7 @@ metadata:
 curl -fsSL https://raw.githubusercontent.com/piggy00544/dsh-upgrade-kit/main/install.sh | bash
 ```
 
-装完重启 web。vision-bridge 需要用户配 key（阿里百炼 DashScope 等任一 provider），配好前该组件不可用，其余三件不受影响。
+装完重启 web。vision-bridge 需要用户配 key（阿里百炼 DashScope 等任一 provider），微信桥需要用户跑 `~/bin/dsh-wechat.mjs login` 扫码；两样都不配，其余组件不受影响。
 
 ## 维护提示
 

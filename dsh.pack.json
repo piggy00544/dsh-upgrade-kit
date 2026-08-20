@@ -2,10 +2,14 @@
   "schemaVersion": 1,
   "kind": "dsh-pack",
   "name": "DSH 装备升级套件",
-  "description": "看钱、看文件、搜外网、看图片：dsh-cost 费用面板 + dsh-plugin-file-preview 文件预览 + dsh-research-mcp 外网搜集 + vision-bridge 视觉桥接。一条命令全装。",
+  "description": "看钱、看文件、搜外网、看图片、通微信：dsh-cost 费用面板 + dsh-plugin-file-preview 文件预览 + dsh-research-mcp 外网搜集 + vision-bridge 视觉桥接 + dsh-wechat-bridge 微信双向通道。一条命令全装。",
   "author": "piggy00544",
   "plugins": [
-    { "id": "dsh-upgrade-kit", "type": "skill", "version": "latest" }
+    {
+      "id": "dsh-upgrade-kit",
+      "type": "skill",
+      "version": "latest"
+    }
   ],
   "config": {},
   "ext": {
@@ -15,7 +19,8 @@
         "dsh-cost",
         "dsh-plugin-file-preview",
         "dsh-research-mcp",
-        "vision-bridge"
+        "vision-bridge",
+        "dsh-wechat-bridge"
       ],
       "note": "本套件由单仓库承载四个组件；完整安装请使用 installer（install.sh），它负责 cordis 插件链接、MCP 注册 patch 与技能落盘。"
     }
