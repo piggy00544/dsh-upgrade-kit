@@ -1,10 +1,17 @@
-# DSH 装备版 v0.1.4（已公证）
+# DSH 装备版 v0.1.6（已公证）
 
-**下载：DSH-Upgrade-Kit-0.1.4.dmg**（macOS 13+，Apple Silicon）
+**下载：DSH-Upgrade-Kit-0.1.6.dmg**（macOS 13+，Apple Silicon）
 
 ✅ 本版已通过 **Apple 公证**（Developer ID: TECHBOOKS LTD）：下载 → 拖进 Applications → **双击直接打开**，无任何 Gatekeeper 拦截。
 
 给 DeepSeek Harness 的"开箱即用"安装包：双击装上，打开填一个 DeepSeek API key，五件装备全部就位，全程不碰终端。
+
+## v0.1.6 变更
+
+- **App 自管服务**：打开 App 自动拉起 DSH 服务，不再依赖系统自启注册（此前部分机器因文件夹权限注册失败需手动起服务，现已绕开）
+- **修复误弹向导**：内部网关 key 无 sk- 前缀被误判为"未配置"，改为按 key 非空判断
+- **新 App 图标**：🤖 机器人 emoji（深色圆角底）
+- 跳过 v0.1.5（其修复已并入本版）
 
 ## v0.1.4 变更
 
