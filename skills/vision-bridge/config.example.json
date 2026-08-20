@@ -1,0 +1,12 @@
+{
+  "provider": "auto",
+  "providerOrder": ["dashscope", "siliconflow", "zhipu", "minimax", "custom"],
+  "maxTokens": 4096,
+  "providers": {
+    "dashscope": { "apiKey": "", "baseURL": "https://dashscope.aliyuncs.com/compatible-mode/v1", "model": "qwen3-vl-flash" },
+    "siliconflow": { "apiKey": "", "baseURL": "https://api.siliconflow.cn/v1", "model": "deepseek-ai/deepseek-ocr" },
+    "zhipu": { "apiKey": "", "baseURL": "https://open.bigmodel.cn/api/paas/v4", "model": "glm-4.6v" },
+    "minimax": { "apiKey": "", "baseURL": "https://api.minimaxi.com/v1", "model": "MiniMax-VL-01" },
+    "custom": { "apiKey": "", "baseURL": "", "model": "" }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "dsh-research-mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Proxy-aware international search + full-text fetch MCP server for DSH deep research. Zero API keys.",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "undici": "^7.0.0",
+    "zod": "^4.0.0"
+  }
+}

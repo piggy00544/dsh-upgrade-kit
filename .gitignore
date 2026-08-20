@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# node
+node_modules/
+.npm-cache/
+*.log
+
+# 临时文件
+*.tmp
