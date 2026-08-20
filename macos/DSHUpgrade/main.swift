@@ -325,8 +325,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
             <div style="margin-top:10px">
               <label for="base">API 地址（留空 = 官方 api.deepseek.com）</label>
               <input id="base" type="text" placeholder="如 http://10.0.0.8:8080/v1" autocomplete="off">
-              <label for="model" style="margin-top:10px">模型 ID（留空 = deepseek-v4-pro）</label>
-              <input id="model" type="text" placeholder="如 deepseek-v4-pro" autocomplete="off">
+              <label for="model" style="margin-top:10px">模型 ID（多个用英文逗号分隔；留空 = deepseek-v4-pro）</label>
+              <input id="model" type="text" placeholder="如 deepseek-v4-pro,deepseek-v4-flash" autocomplete="off">
             </div>
           </details>
           <button id="go">开始使用</button>

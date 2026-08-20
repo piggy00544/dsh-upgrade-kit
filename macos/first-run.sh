@@ -53,13 +53,17 @@ if [ -n "$BASE_URL" ] || [ -n "$MODEL_ID" ]; then
     [ -n "$BASE_URL" ] && echo "  baseURL: '$BASE_URL'"
     if [ -n "$MODEL_ID" ]; then
       echo "  models:"
-      echo "    - id: '$MODEL_ID'"
-      echo "      name: '$MODEL_ID'"
+      echo "$MODEL_ID" | tr ',' '\n' | while IFS= read -r mid; do
+        [ -z "$mid" ] && continue
+        echo "    - id: '$mid'"
+        echo "      name: '$mid'"
+      done
     fi
   } >> "$HOME_DIR/settings.yaml"
-  # 默认模型跟随内部模型 ID
+  # 默认模型跟随第一个内部模型 ID
   if [ -n "$MODEL_ID" ]; then
-    sed -i '' "s/  model: deepseek-v4-pro/  model: $MODEL_ID/" "$HOME_DIR/settings.yaml"
+    FIRST_MODEL="$(echo "$MODEL_ID" | tr ',' '\n' | head -1)"
+    sed -i '' "s/  model: deepseek-v4-pro/  model: $FIRST_MODEL/" "$HOME_DIR/settings.yaml"
   fi
   echo "✔ 自定义端点已写入 settings.yaml（baseURL=$BASE_URL modelId=$MODEL_ID）"
 fi
