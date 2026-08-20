@@ -8,3 +8,8 @@ node_modules/
 
 # 临时文件
 *.tmp
+
+# macOS 打包产物（build.sh 生成）
+macos/dist/
+macos/home-template/
+macos/work/
