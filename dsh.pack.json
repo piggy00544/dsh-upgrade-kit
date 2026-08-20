@@ -3,14 +3,14 @@
   "kind": "dsh-pack",
   "name": "DSH 装备升级套件",
   "description": "看钱、看文件、搜外网、看图片：dsh-cost 费用面板 + dsh-plugin-file-preview 文件预览 + dsh-research-mcp 外网搜集 + vision-bridge 视觉桥接。一条命令全装。",
-  "author": "<OWNER>",
+  "author": "piggy00544",
   "plugins": [
     { "id": "dsh-upgrade-kit", "type": "skill", "version": "latest" }
   ],
   "config": {},
   "ext": {
     "dsh-upgrade-kit": {
-      "installer": "curl -fsSL https://raw.githubusercontent.com/<OWNER>/dsh-upgrade-kit/main/install.sh | bash",
+      "installer": "curl -fsSL https://raw.githubusercontent.com/piggy00544/dsh-upgrade-kit/main/install.sh | bash",
       "components": [
         "dsh-cost",
         "dsh-plugin-file-preview",

@@ -22,7 +22,7 @@ metadata:
 ## 安装（未装时）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<OWNER>/dsh-upgrade-kit/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/piggy00544/dsh-upgrade-kit/main/install.sh | bash
 ```
 
 装完重启 web。vision-bridge 需要用户配 key（阿里百炼 DashScope 等任一 provider），配好前该组件不可用，其余三件不受影响。

@@ -24,7 +24,7 @@
 ## 一键安装
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<OWNER>/dsh-upgrade-kit/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/piggy00544/dsh-upgrade-kit/main/install.sh | bash
 ```
 
 装完重启 DSH web（`launchctl kickstart -k gui/$(id -u)/com.deepseek.dsh-web`，或重启你的 dsh web 进程），侧栏就会长出 ¥ 按钮和「附件」按钮。

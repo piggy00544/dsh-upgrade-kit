@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # dsh-upgrade-kit 一键安装：token 花费面板 + 文件预览 + 外网搜集 + 视觉桥接
-# 用法：curl -fsSL https://raw.githubusercontent.com/<OWNER>/dsh-upgrade-kit/main/install.sh | bash
+# 用法：curl -fsSL https://raw.githubusercontent.com/piggy00544/dsh-upgrade-kit/main/install.sh | bash
 set -euo pipefail
 
 KIT_HOME="${DSH_UPGRADE_KIT_HOME:-$HOME/.local/share/dsh-upgrade-kit}"
-REPO_URL="https://github.com/<OWNER>/dsh-upgrade-kit.git"
+REPO_URL="https://github.com/piggy00544/dsh-upgrade-kit.git"
 PROFILE="${DSH_PROFILE:-web}"
 SKILL_DIR="$HOME/.agents/skills"
 
