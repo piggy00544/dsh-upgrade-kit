@@ -1,5 +1,6 @@
 import Cocoa
 import WebKit
+import CoreImage
 import Carbon.HIToolbox
 import UserNotifications
 
@@ -39,6 +40,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
     var statusItem: NSStatusItem!
     var hotKeyRef: EventHotKeyRef?
     var serverTries = 0
+    var qrTimer: Timer?
+    var currentQrcode = ""
     let notificationDelegate = NotificationCenterDelegate()
 
     // MARK: - lifecycle
@@ -107,6 +110,174 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         webView.loadHTMLString(html, baseURL: nil)
     }
 
+    // MARK: - WeChat bridge wizard (step 2)
+
+    func showWechatPage() {
+        window.title = "DSH 装备版 · 连微信"
+        webView.loadHTMLString(wechatHTML(), baseURL: nil)
+        fetchWechatQr()
+    }
+
+    func wechatHTML() -> String {
+        return """
+        <!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,"PingFang SC",system-ui,sans-serif;background:#010102;color:#f7f8f8;
+             display:flex;align-items:center;justify-content:center;min-height:100vh;padding:32px}
+        .card{max-width:520px;width:100%;text-align:center}
+        .eyebrow{font-size:12px;letter-spacing:1.5px;color:#8a8f98;margin-bottom:14px}
+        .eyebrow b{color:#5e6ad2}
+        h1{font-size:28px;font-weight:600;letter-spacing:-0.8px;margin-bottom:10px}
+        h1 span{color:#5e6ad2}
+        .sub{font-size:14px;line-height:1.7;color:#d0d6e0;margin-bottom:22px}
+        .qrbox{width:208px;height:208px;margin:0 auto 18px;background:#fff;border-radius:12px;
+               display:flex;align-items:center;justify-content:center;overflow:hidden}
+        .qrbox img{width:192px;height:192px}
+        .qrbox .placeholder{color:#62666d;font-size:12px;text-align:center;line-height:1.6}
+        .status{font-size:14px;color:#d0d6e0;margin-bottom:22px;min-height:20px}
+        .status.ok{color:#27a644}
+        button{width:100%;background:#5e6ad2;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;
+               padding:12px;cursor:pointer}
+        button:hover{background:#828fff}
+        button:disabled{opacity:.5;cursor:default}
+        button.ghost{background:#0f1011;border:1px solid #34343a;color:#8a8f98;margin-top:12px;font-weight:500}
+        </style></head><body>
+        <div class="card">
+          <div class="eyebrow"><b>DSH</b> 装备版 · 第 2 步（可选）</div>
+          <h1>扫码连上你的<span>微信</span></h1>
+          <div class="sub">之后在微信里给 bot 发消息，就能远程指挥 DSH；<br>干完活它也会主动发微信通知你。</div>
+          <div class="qrbox" id="qrbox"><div class="placeholder">二维码加载中…</div></div>
+          <div class="status" id="status">正在获取二维码…</div>
+          <button id="enter" disabled>进入 DSH</button>
+          <button class="ghost" id="skip">先跳过，稍后再连</button>
+        </div>
+        <script>
+        function setQr(src) {
+          document.getElementById('qrbox').innerHTML = '<img src="' + src + '">';
+        }
+        function setStatus(text, ok) {
+          const el = document.getElementById('status');
+          el.textContent = text;
+          el.className = ok ? 'status ok' : 'status';
+        }
+        function setReady() {
+          document.getElementById('enter').disabled = false;
+        }
+        document.getElementById('enter').addEventListener('click', () => {
+          window.webkit.messageHandlers.enterDsh.postMessage('go');
+        });
+        document.getElementById('skip').addEventListener('click', () => {
+          window.webkit.messageHandlers.skipWechat.postMessage('skip');
+        });
+        </script></body></html>
+        """
+    }
+
+    // MARK: - WeChat QR plumbing (node subprocess + CoreImage)
+
+    func wechatScriptPath() -> String {
+        // 优先 ~/bin（first-run 安装的副本），回退 App 资源
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let binCopy = home + "/bin/dsh-wechat.mjs"
+        if FileManager.default.fileExists(atPath: binCopy) { return binCopy }
+        return Bundle.main.bundleURL
+            .appendingPathComponent("Contents/Resources/plugins/wechat-bridge/dsh-wechat.mjs").path
+    }
+
+    func nodeBinPath() -> String {
+        return Bundle.main.bundleURL
+            .appendingPathComponent("Contents/MacOS/node/bin/node").path
+    }
+
+    func runNode(args: [String], completion: @escaping (String?) -> Void) {
+        let proc = Process()
+        proc.executableURL = URL(fileURLWithPath: nodeBinPath())
+        proc.arguments = [wechatScriptPath()] + args
+        let pipe = Pipe()
+        proc.standardOutput = pipe
+        proc.standardError = Pipe()
+        try? proc.run()
+        DispatchQueue.global().async {
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            let out = String(data: data, encoding: .utf8)
+            DispatchQueue.main.async { completion(out) }
+        }
+    }
+
+    func qrDataURI(from string: String) -> String {
+        guard let filter = CIFilter(name: "CIQRCodeGenerator") else { return "" }
+        filter.setValue(Data(string.utf8), forKey: "inputMessage")
+        filter.setValue("M", forKey: "inputCorrectionLevel")
+        guard let output = filter.outputImage else { return "" }
+        let scaled = output.transformed(by: CGAffineTransform(scaleX: 12, y: 12))
+        let rep = NSBitmapImageRep(ciImage: scaled)
+        guard let png = rep.representation(using: .png, properties: [:]) else { return "" }
+        return "data:image/png;base64," + png.base64EncodedString()
+    }
+
+    func js(_ code: String) {
+        webView.evaluateJavaScript(code, completionHandler: nil)
+    }
+
+    func fetchWechatQr() {
+        runNode(args: ["qr"]) { [weak self] out in
+            guard let self = self else { return }
+            guard let data = out?.data(using: .utf8),
+                  let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  obj["ok"] as? Bool == true,
+                  let qrcode = obj["qrcode"] as? String,
+                  let img = obj["img"] as? String, !img.isEmpty else {
+                self.js("setStatus('二维码获取失败，可跳过稍后再连', false)")
+                return
+            }
+            self.currentQrcode = qrcode
+            let dataURI = self.qrDataURI(from: img)
+            self.js("setQr(\'\(dataURI)\')")
+            self.js("setStatus('请用微信扫码，然后手机确认', false)")
+            self.startQrPolling()
+        }
+    }
+
+    func startQrPolling() {
+        stopQrPolling()
+        qrTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
+            self?.pollQrStatus()
+        }
+    }
+
+    func stopQrPolling() {
+        qrTimer?.invalidate()
+        qrTimer = nil
+    }
+
+    func pollQrStatus() {
+        guard !currentQrcode.isEmpty else { return }
+        runNode(args: ["check", currentQrcode]) { [weak self] out in
+            guard let self = self else { return }
+            guard let data = out?.data(using: .utf8),
+                  let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let status = obj["status"] as? String else { return }
+            switch status {
+            case "wait":
+                self.js("setStatus('请用微信扫码，然后手机确认', false)")
+            case "scaned":
+                self.js("setStatus('已扫码，请在手机上点确认', false)")
+            case "expired":
+                self.js("setStatus('二维码过期，正在刷新…', false)")
+                self.fetchWechatQr()
+            case "confirmed":
+                self.stopQrPolling()
+                self.js("setStatus('✅ 微信已连上！以后在微信里发消息就能指挥 DSH', true)")
+                self.js("setReady()")
+            default:
+                break
+            }
+        }
+    }
+
+
     func welcomeHTML() -> String {
         return """
         <!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
@@ -147,8 +318,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
             <span class="kit">💬 微信双向通道</span>
           </div>
           <label for="key">DeepSeek API key</label>
-          <input id="key" type="password" placeholder="sk-..." autocomplete="off">
-          <div class="hint">在 <a href="#">platform.deepseek.com</a> 的「API keys」页面创建。<br>key 只写进本机配置（~/.config 权限 600），绝不上传。</div>
+          <input id="key" type="password" placeholder="官方 key（sk-…）或内部网关 key" autocomplete="off">
+          <div class="hint">官方 key 在 <a href="#">platform.deepseek.com</a> 创建；<br>公司内部部署的 key 同样支持。key 只写进本机配置（权限 600），绝不上传。</div>
+          <details style="margin-bottom:20px">
+            <summary style="font-size:13px;color:#8a8f98;cursor:pointer;user-select:none">高级选项：自定义 API 地址（内部部署用）</summary>
+            <div style="margin-top:10px">
+              <label for="base">API 地址（留空 = 官方 api.deepseek.com）</label>
+              <input id="base" type="text" placeholder="如 http://10.0.0.8:8080/v1" autocomplete="off">
+              <label for="model" style="margin-top:10px">模型 ID（留空 = deepseek-v4-pro）</label>
+              <input id="model" type="text" placeholder="如 deepseek-v4-pro" autocomplete="off">
+            </div>
+          </details>
           <button id="go">开始使用</button>
           <div class="err" id="err"></div>
           <a class="skip" href="#" id="later">先跳过，稍后在设置里填</a>
@@ -159,10 +339,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         const err = document.getElementById('err');
         function submit() {
           const key = keyInput.value.trim();
-          if (!key.startsWith('sk-')) { err.textContent = 'key 格式看起来不对，应以 sk- 开头'; return; }
+          if (!key) { err.textContent = '请填入 API key'; return; }
           go.disabled = true;
           err.textContent = '正在初始化，首次启动约需 1 分钟…';
-          window.webkit.messageHandlers.saveKey.postMessage(key);
+          const payload = JSON.stringify({
+            key: key,
+            baseURL: document.getElementById('base').value.trim(),
+            modelId: document.getElementById('model').value.trim()
+          });
+          window.webkit.messageHandlers.saveKey.postMessage(payload);
         }
         go.addEventListener('click', submit);
         keyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
@@ -186,25 +371,47 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
             }
             return
         }
+        if message.name == "skipWechat" {
+            DispatchQueue.main.async { [weak self] in
+                self?.stopQrPolling()
+                self?.startServerCheck()
+            }
+            return
+        }
+        if message.name == "enterDsh" {
+            DispatchQueue.main.async { [weak self] in
+                self?.stopQrPolling()
+                self?.startServerCheck()
+            }
+            return
+        }
         guard message.name == "saveKey" else { return }
-        let key = (message.body as? String) ?? ""
+        var key = (message.body as? String) ?? ""
+        var baseURL = ""
+        var modelId = ""
+        if let data = key.data(using: .utf8),
+           let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            key = (obj["key"] as? String) ?? ""
+            baseURL = (obj["baseURL"] as? String) ?? ""
+            modelId = (obj["modelId"] as? String) ?? ""
+        }
         DispatchQueue.global().async { [weak self] in
-            self?.runFirstSetup(key: key)
+            self?.runFirstSetup(key: key, baseURL: baseURL, modelId: modelId)
         }
     }
 
-    func runFirstSetup(key: String) {
+    func runFirstSetup(key: String, baseURL: String, modelId: String) {
         let setup = Bundle.main.bundleURL.appendingPathComponent("Contents/Resources/first-run.sh").path
         let proc = Process()
         proc.executableURL = URL(fileURLWithPath: "/bin/bash")
-        proc.arguments = [setup, key]
+        proc.arguments = [setup, key, baseURL, modelId]
         let pipe = Pipe()
         proc.standardOutput = pipe
         proc.standardError = pipe
         try? proc.run()
         proc.waitUntilExit()
         DispatchQueue.main.async { [weak self] in
-            self?.startServerCheck()
+            self?.showWechatPage()
         }
     }
 
@@ -274,6 +481,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         config.websiteDataStore = .default()
         config.userContentController.add(self, name: "saveKey")
         config.userContentController.add(self, name: "openConsole")
+        config.userContentController.add(self, name: "skipWechat")
+        config.userContentController.add(self, name: "enterDsh")
         let wv = WKWebView(frame: .zero, configuration: config)
         wv.uiDelegate = self
         wv.navigationDelegate = self

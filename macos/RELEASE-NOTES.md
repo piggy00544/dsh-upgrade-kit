@@ -1,8 +1,14 @@
-# DSH 装备版 v0.1.0
+# DSH 装备版 v0.1.1
 
-**下载：DSH-Upgrade-Kit-0.1.0.dmg**（macOS 13+，Apple Silicon）
+**下载：DSH-Upgrade-Kit-0.1.1.dmg**（macOS 13+，Apple Silicon）
 
 给 DeepSeek Harness 的"开箱即用"安装包：双击装上，打开填一个 DeepSeek API key，五件装备全部就位，全程不碰终端。
+
+## v0.1.1 新增
+
+- 向导第二步：**微信扫码页**（App 内显示二维码，扫码即连，不用碰终端）
+- 向导第一步：**高级选项**（自定义 API 地址 + 模型 ID）——公司内部部署的 DeepSeek 网关直接填表接入，key 无格式要求
+- dsh-wechat 新增 `qr` / `check` JSON 子命令（GUI 驱动）
 
 ## 一键获得
 

@@ -251,6 +251,56 @@ function runCheck() {
   }
 }
 
+// ---------------- gui helpers（App 向导页用，JSON 输出）----------------
+
+async function runQr() {
+  try {
+    const qr = await fetchQR();
+    console.log(JSON.stringify({
+      ok: true,
+      qrcode: qr.qrcode,
+      img: qr.qrcode_img_content || '',
+    }));
+  } catch (err) {
+    console.log(JSON.stringify({ ok: false, error: err.message }));
+    process.exit(1);
+  }
+}
+
+// 确认后保存凭证（与 runLogin 相同逻辑）
+async function confirmAndSave(qrcode) {
+  const full = await apiGet(
+    `ilink/bot/get_qrcode_status?qrcode=${encodeURIComponent(qrcode)}`,
+    5000,
+  );
+  if (!full || !full.bot_token || !full.ilink_bot_id) return null;
+  const creds = {
+    bot_token: full.bot_token,
+    ilink_bot_id: full.ilink_bot_id,
+    ilink_user_id: full.ilink_user_id || '',
+    baseurl: full.baseurl || '',
+    updated_at: new Date().toISOString(),
+  };
+  saveCreds(creds);
+  return creds;
+}
+
+async function runQrCheck(qrcode) {
+  try {
+    const status = await pollStatus(qrcode, 6000);
+    if (status === 'confirmed') {
+      const creds = await confirmAndSave(qrcode);
+      if (creds) {
+        console.log(JSON.stringify({ ok: true, status: 'confirmed', bot_id: creds.ilink_bot_id }));
+        return;
+      }
+    }
+    console.log(JSON.stringify({ ok: true, status }));
+  } catch (err) {
+    console.log(JSON.stringify({ ok: false, status: 'error', error: err.message }));
+  }
+}
+
 // ---------------- main ----------------
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -258,6 +308,14 @@ switch (cmd) {
   case 'login':
     runLogin();
     break;
+  case 'qr':
+    runQr();
+    break;
+  case 'check': {
+    if (rest.length >= 1) runQrCheck(rest[0]);
+    else { console.error('usage: dsh-wechat check <qrcode>'); process.exit(2); }
+    break;
+  }
   case 'send': {
     if (rest.length >= 2) runSend(rest[0], rest.slice(1).join(' '));
     else if (rest.length === 1) runSend('', rest[0]);
@@ -271,6 +329,6 @@ switch (cmd) {
     runCheck();
     break;
   default:
-    console.error('usage: dsh-wechat {login|send|status|--check}');
+    console.error('usage: dsh-wechat {login|qr|check|send|status|--check}');
     process.exit(2);
 }
