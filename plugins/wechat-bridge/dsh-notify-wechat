@@ -10,7 +10,16 @@
 # Credentials live at ~/.local/share/dsh-wechat/credentials.json (0600);
 # this script only forwards argv and never prints credential values.
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# 解析脚本自身的 symlink（如 /opt/homebrew/bin/dsh-notify-wechat → ~/bin/...）
+SELF="$0"
+while [ -L "$SELF" ]; do
+  LINK="$(readlink "$SELF")"
+  case "$LINK" in
+    /*) SELF="$LINK" ;;
+    *) SELF="$(dirname "$SELF")/$LINK" ;;
+  esac
+done
+SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
 
 case "$1" in
   --message) shift; TITLE=""; ;;
