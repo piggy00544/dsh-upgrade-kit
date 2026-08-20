@@ -107,7 +107,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
     func showWelcome() {
         window.title = "DSH 装备版 · 开始"
         let html = welcomeHTML()
-        webView.loadHTMLString(html, baseURL: nil)
+        webView.loadHTMLString(html, baseURL: Bundle.main.resourceURL)
     }
 
     // MARK: - WeChat bridge wizard (step 2)
@@ -307,6 +307,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         .skip{display:block;text-align:center;margin-top:14px;font-size:12px;color:#62666d;text-decoration:none}
         .skip:hover{color:#8a8f98}
         .err{color:#f27d7d;font-size:12px;margin:6px 0 0;min-height:16px}
+        .author{margin-top:22px;padding-top:18px;border-top:1px solid #23252a;display:flex;align-items:center;gap:14px}
+        .author img{width:76px;height:76px;border-radius:10px;border:1px solid #23252a}
+        .author-text{text-align:left}
+        .author-name{font-size:13px;color:#f7f8f8;margin-bottom:4px}
+        .author-name b{font-weight:600}
+        .author-sub{font-size:11px;color:#62666d;line-height:1.6}
         </style></head><body>
         <div class="card">
           <div class="eyebrow"><b>DSH</b> 装备版 · 首次设置</div>
@@ -332,6 +338,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
           <button id="go">开始使用</button>
           <div class="err" id="err"></div>
           <a class="skip" href="#" id="later">先跳过，稍后在设置里填</a>
+          <div class="author">
+            <img src="qrcode-wechat.jpg" alt="公众号二维码">
+            <div class="author-text">
+              <div class="author-name">作者：<b>牛村木木山</b></div>
+              <div class="author-sub">欢迎关注公众号「牛村木木山」<br>DSH 技巧 · AI 工具 · 不定期更新</div>
+            </div>
+          </div>
         </div>
         <script>
         const keyInput = document.getElementById('key');

@@ -1,10 +1,16 @@
-# DSH 装备版 v0.1.2（已公证）
+# DSH 装备版 v0.1.3（已公证）
 
-**下载：DSH-Upgrade-Kit-0.1.2.dmg**（macOS 13+，Apple Silicon）
+**下载：DSH-Upgrade-Kit-0.1.3.dmg**（macOS 13+，Apple Silicon）
 
 ✅ 本版已通过 **Apple 公证**（Developer ID: TECHBOOKS LTD）：下载 → 拖进 Applications → **双击直接打开**，无任何 Gatekeeper 拦截。
 
 给 DeepSeek Harness 的"开箱即用"安装包：双击装上，打开填一个 DeepSeek API key，五件装备全部就位，全程不碰终端。
+
+## v0.1.3 变更
+
+- 向导高级选项支持**多个内部模型**（逗号分隔，选择器全部展示，默认选第一个）
+- 修复最低系统要求（此前误标 macOS 27+，现为 **macOS 13+**，Tahoe 26 可装）
+- 向导首页新增作者曝光区：公众号「牛村木木山」二维码与关注引导
 
 ## v0.1.2 变更
 

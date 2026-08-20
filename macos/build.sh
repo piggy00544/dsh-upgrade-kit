@@ -18,7 +18,7 @@ rm -rf "$HERE/dist"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 echo "==> 3/7 编译 Swift 壳"
-swiftc -O "$HERE/DSHUpgrade/main.swift" \
+swiftc -O -target arm64-apple-macos13.0 "$HERE/DSHUpgrade/main.swift" \
   -o "$APP/Contents/MacOS/DSHUpgrade" \
   -framework Cocoa -framework WebKit -framework Carbon -framework UserNotifications
 echo "    swiftc OK"
@@ -55,6 +55,10 @@ echo "==> 5/7 拷贝资源（模板 / 插件 / 初始化脚本）"
 cp -R "$HERE/home-template" "$APP/Contents/Resources/"
 cp "$HERE/first-run.sh" "$APP/Contents/Resources/"
 chmod +x "$APP/Contents/Resources/first-run.sh"
+
+# 公众号二维码（向导页作者区块）
+cp "$HERE/assets/qrcode-wechat.jpg" "$APP/Contents/Resources/qrcode-wechat.jpg" 2>/dev/null || true
+echo "    qrcode OK"
 
 # research-mcp + 依赖（npm install 用 lockfile）
 mkdir -p "$APP/Contents/Resources/plugins"
