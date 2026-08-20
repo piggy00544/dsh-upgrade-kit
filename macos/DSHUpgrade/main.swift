@@ -40,6 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
     var statusItem: NSStatusItem!
     var hotKeyRef: EventHotKeyRef?
     var serverTries = 0
+    var webServerProcess: Process?
     var qrTimer: Timer?
     var currentQrcode = ""
     let notificationDelegate = NotificationCenterDelegate()
@@ -75,6 +76,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
 
     func applicationWillTerminate(_ notification: Notification) {
         if let ref = hotKeyRef { UnregisterEventHotKey(ref) }
+        if webServerProcess?.isRunning == true { webServerProcess?.terminate() }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -99,9 +101,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         let creds = home + "/.credentials.yaml"
         guard FileManager.default.fileExists(atPath: creds) else { return true }
         guard let content = try? String(contentsOfFile: creds, encoding: .utf8) else { return true }
-        // 已配置 = credentials 里有非空 key
+        // 已配置 = credentials 里 key 非空（内部网关 key 无 sk- 前缀，不能按前缀判断）
         let keyLine = content.split(separator: "\n").first ?? ""
-        return !keyLine.contains("sk-")
+        let keyValue = keyLine.split(separator: ":", maxSplits: 1).last?
+            .trimmingCharacters(in: .whitespaces) ?? ""
+        return keyValue.isEmpty
     }
 
     func showWelcome() {
@@ -574,6 +578,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
 
     // MARK: - server connection
 
+    // 自己把 DSH web 服务拉起来（不依赖 LaunchAgent，绕开系统文件夹权限限制）
+    func spawnWebServer() {
+        if webServerProcess?.isRunning == true { return }
+        let proc = Process()
+        proc.executableURL = Bundle.main.bundleURL
+            .appendingPathComponent("Contents/MacOS/dsh")
+        proc.arguments = ["web", "--host", "127.0.0.1", "--port", "3080"]
+        var env = ProcessInfo.processInfo.environment
+        env["DSH_HOME"] = userHome() + "/home"
+        env["DSH_TELEMETRY_DISABLED"] = "1"
+        proc.environment = env
+        proc.standardOutput = FileHandle.nullDevice
+        proc.standardError = FileHandle.nullDevice
+        try? proc.run()
+        webServerProcess = proc
+    }
+
     func startServerCheck() {
         serverTries = 0
         showWaiting()
@@ -595,6 +616,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
                             launchPath: "/bin/launchctl",
                             arguments: ["kickstart", "-k", "gui/\(getuid())/\(kWebAgentLabel)"])
                         task.waitUntilExit()
+                        // LaunchAgent 可能没注册成功（系统权限），自己拉起服务兜底
+                        self.spawnWebServer()
                     }
                     if self.serverTries <= 15 {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in

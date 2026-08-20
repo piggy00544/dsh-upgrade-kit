@@ -71,7 +71,7 @@ echo "==> 6/7 图标与 Info.plist"
 # 从封面生成多尺寸 iconset
 ICONSET="$HERE/work/icon.iconset"
 rm -rf "$ICONSET" && mkdir -p "$ICONSET"
-SRC="$KIT_ROOT/assets/cover/cover.png"
+SRC="$HERE/assets/app-icon.png"
 for s in 16 32 128 256 512; do
   sips -z $s $s "$SRC" --out "$ICONSET/icon_${s}x${s}.png" >/dev/null
   d=$((s*2))
