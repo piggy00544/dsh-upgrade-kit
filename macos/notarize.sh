@@ -19,7 +19,12 @@ find "$APP" -type f > /tmp/all-files.txt
 file -f /tmp/all-files.txt 2>/dev/null | grep "Mach-O" | cut -d: -f1 > /tmp/macho-list.txt
 COUNT=0
 while IFS= read -r f; do
-  codesign --force --options runtime --timestamp --sign "$ID" "$f" >/dev/null 2>&1
+  if [[ "$f" == */node/bin/node ]]; then
+    # node 的 V8 需要 JIT entitlements（否则 macOS 以 SIGTRAP 拒绝启动）
+    codesign --force --options runtime --timestamp --entitlements "$HERE/assets/node-entitlements.plist" --sign "$ID" "$f" >/dev/null 2>&1
+  else
+    codesign --force --options runtime --timestamp --sign "$ID" "$f" >/dev/null 2>&1
+  fi
   COUNT=$((COUNT+1))
 done < /tmp/macho-list.txt
 echo "    已签名 $COUNT 个 Mach-O"
