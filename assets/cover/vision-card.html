@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --canvas: #010102; --surface-1: #0f1011; --surface-2: #141516;
+    --hairline: #23252a; --ink: #f7f8f8; --ink-muted: #d0d6e0; --ink-subtle: #8a8f98;
+    --primary: #5e6ad2; --success: #27a644;
+  }
+  body {
+    width: 860px; height: 480px; background: var(--canvas);
+    font-family: -apple-system, "SF Pro Display", "PingFang SC", system-ui, sans-serif;
+    color: var(--ink); padding: 30px 34px;
+  }
+  .head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px; }
+  .head h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.8px; }
+  .head .tag {
+    font-size: 12px; color: var(--primary); font-weight: 500;
+    border: 1px solid var(--primary); border-radius: 999px; padding: 2px 10px;
+  }
+  .grid { display: flex; gap: 14px; }
+  .col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .col-label {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.8px; color: var(--ink-subtle);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .col-label .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--primary); }
+  .panel {
+    background: var(--surface-1); border: 1px solid var(--hairline);
+    border-radius: 12px; padding: 12px; flex: 1; overflow: hidden;
+  }
+  .panel img { width: 100%; border-radius: 8px; display: block; border: 1px solid var(--hairline); }
+  .vision {
+    font-size: 13px; line-height: 1.75; color: var(--ink-muted);
+  }
+  .vision b { color: var(--ink); }
+  .vision .k { color: var(--primary); font-weight: 600; }
+  .vision .num { color: #f2b84b; font-weight: 600; }
+  .vision .ok { color: var(--success); font-weight: 600; }
+  .arrow {
+    align-self: center; color: var(--primary); font-size: 22px; flex: 0 0 20px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="head">
+    <h1>vision-bridge：模型没有眼睛，也能"看"</h1>
+    <span class="tag">贴图自动触发</span>
+  </div>
+  <div class="grid">
+    <div class="col">
+      <div class="col-label"><span class="dot"></span>你贴的图</div>
+      <div class="panel"><img src="cost-panel.png" alt="DSH 费用面板截图"></div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col">
+      <div class="col-label"><span class="dot"></span>模型读到的（文字）</div>
+      <div class="panel">
+        <div class="vision">
+          <span class="k">▍余额与花费</span><br>
+          账户余额 <b>¥476.06 CNY</b><br>
+          今日花费 <span class="num">¥5.36</span> / $0.79 · 累计 ¥71.95<br><br>
+          <span class="k">▍消耗结构</span><br>
+          按模型：v4-pro <b>3.2M</b> tokens · v4-flash <b>340.2K</b><br>
+          按日：今日 191.5K · 昨日 3.3M<br>
+          峰谷拆分：高峰 ¥32.83 / 低谷 ¥39.12<br><br>
+          <span class="k">▍UI 坐标（ui 模式）</span><br>
+          <span class="ok">box (812, 320) → (1000, 380)</span><br>
+          → 换算像素后，可驱动浏览器点按钮
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
