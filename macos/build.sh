@@ -105,7 +105,7 @@ rm -rf "$BUILD_LOCAL" && mkdir -p "$BUILD_LOCAL"
 cp -R "$APP" "$BUILD_LOCAL/"
 APP_LOCAL="$BUILD_LOCAL/$APP_NAME.app"
 xattr -cr "$APP_LOCAL" 2>/dev/null || true
-codesign --force --sign - "$APP_LOCAL"
+codesign --force --deep --sign - "$APP_LOCAL" 2>/dev/null || codesign --force --deep --sign - "$APP_LOCAL"
 echo "    签名 OK"
 
 echo "==> 7/7 打 DMG（手动 hdiutil，含拖拽链接）"
