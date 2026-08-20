@@ -199,7 +199,10 @@ function createPanelStore(): PanelStore {
       return () => listeners.delete(listener);
     },
     open: (sessionId) => {
-      if (state.open && state.sessionId === sessionId && state.ws === null) return;
+      if (state.open && state.sessionId === sessionId && state.ws === null) {
+        refresh();
+        return;
+      }
       state = { ...CLOSED, open: true, sessionId };
       emit();
       refresh();

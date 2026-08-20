@@ -126,7 +126,11 @@ function createPanelStore() {
     getSnapshot: () => state,
     subscribe: (listener) => (listeners.add(listener), () => listeners.delete(listener)),
     open: (sessionId) => {
-      state.open && state.sessionId === sessionId && state.ws === null || (state = { ...CLOSED, open: !0, sessionId }, emit(), refresh());
+      if (state.open && state.sessionId === sessionId && state.ws === null) {
+        refresh();
+        return;
+      }
+      state = { ...CLOSED, open: !0, sessionId }, emit(), refresh();
     },
     openWorkspace: (ws) => {
       state = { ...CLOSED, open: !0, ws }, emit();

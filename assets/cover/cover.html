@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --canvas: #010102;
+    --surface-1: #0f1011;
+    --surface-2: #141516;
+    --hairline: #23252a;
+    --hairline-strong: #34343a;
+    --ink: #f7f8f8;
+    --ink-muted: #d0d6e0;
+    --ink-subtle: #8a8f98;
+    --primary: #5e6ad2;
+    --primary-hover: #828fff;
+    --success: #27a644;
+  }
+  body {
+    width: 900px; height: 383px;
+    background: var(--canvas);
+    font-family: -apple-system, "SF Pro Display", "PingFang SC", system-ui, sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .wrap { display: flex; height: 100%; padding: 28px 32px; gap: 28px; }
+  .left { flex: 0 0 300px; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+  .eyebrow {
+    font-size: 12px; font-weight: 500; letter-spacing: 1.2px;
+    color: var(--ink-subtle); text-transform: uppercase;
+  }
+  .eyebrow b { color: var(--primary); font-weight: 600; }
+  h1 {
+    font-size: 44px; font-weight: 600; line-height: 1.08; letter-spacing: -1.6px;
+    color: var(--ink);
+  }
+  h1 .accent { color: var(--primary); }
+  .sub { font-size: 14px; line-height: 1.6; color: var(--ink-muted); }
+  .kits { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .kit {
+    font-size: 12px; font-weight: 500; color: var(--ink-muted);
+    background: var(--surface-2); border: 1px solid var(--hairline);
+    border-radius: 6px; padding: 5px 10px;
+  }
+  .kit b { color: var(--ink); font-weight: 600; }
+  .right {
+    flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px;
+  }
+  .shot-card {
+    background: var(--surface-1); border: 1px solid var(--hairline);
+    border-radius: 16px; padding: 10px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .shot-card img { width: 100%; border-radius: 10px; display: block; border: 1px solid var(--hairline); }
+  .cmd {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface-1); border: 1px solid var(--hairline);
+    border-radius: 8px; padding: 9px 12px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11.5px; color: var(--ink-muted);
+  }
+  .cmd .dot { color: var(--success); font-size: 10px; }
+  .cmd b { color: var(--ink); font-weight: 500; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="left">
+      <div class="eyebrow"><b>DSH</b> 装备升级套件 · 开源</div>
+      <h1>给 DeepSeek Harness<br>装上四件<span class="accent">装备</span></h1>
+      <div class="sub">看钱 · 看文件 · 搜外网 · 看图片<br>一条命令全装，装完即用</div>
+      <div class="kits">
+        <span class="kit">💰 <b>dsh-cost</b> 费用面板</span>
+        <span class="kit">📄 <b>file-preview</b> 文件预览</span>
+        <span class="kit">🌐 <b>research-mcp</b> 外网搜集</span>
+        <span class="kit">👁 <b>vision-bridge</b> 视觉桥接</span>
+      </div>
+    </div>
+    <div class="right">
+      <div class="shot-card">
+        <img src="cost-panel.png" alt="dsh-cost 用量与费用面板">
+      </div>
+      <div class="cmd">
+        <span class="dot">●</span>
+        <span>curl -fsSL <b>…/install.sh</b> | bash</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
