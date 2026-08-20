@@ -1,6 +1,7 @@
 import Cocoa
 import WebKit
 import CoreImage
+import Sparkle
 import Carbon.HIToolbox
 import UserNotifications
 
@@ -42,6 +43,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
     var serverTries = 0
     var webServerProcess: Process?
     var qrTimer: Timer?
+    var updaterController: SPUStandardUpdaterController!
     var currentQrcode = ""
     let notificationDelegate = NotificationCenterDelegate()
 
@@ -65,6 +67,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         buildWindow()
         buildStatusItem()
         registerHotKey()
+        // Sparkle 自动更新（Info.plist 的 SUFeedURL/SUPublicEDKey 驱动）
+        updaterController = SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: nil,
+            userDriverDelegate: nil)
         NSApp.activate(ignoringOtherApps: true)
 
         if isFirstRun() {

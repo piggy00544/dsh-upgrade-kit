@@ -8,7 +8,7 @@ APP_NAME="DSH 装备版"
 APP="$HERE/dist/$APP_NAME.app"
 DSH_PKG_PREFIX="/Users/shan/Library/Application Support/DeepSeek Harness Lab/npm-rc8"
 NODE_TAR="/tmp/node-v22.22.0-darwin-arm64.tar.xz"
-VERSION="0.1.0"
+VERSION="${VERSION:-0.2.0}"
 
 echo "==> 1/7 生成 home-template"
 bash "$HERE/generate-home-template.sh"
@@ -20,8 +20,13 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 echo "==> 3/7 编译 Swift 壳"
 swiftc -O -target arm64-apple-macos13.0 "$HERE/DSHUpgrade/main.swift" \
   -o "$APP/Contents/MacOS/DSHUpgrade" \
-  -framework Cocoa -framework WebKit -framework Carbon -framework UserNotifications
+  -F "$HERE/vendor" \
+  -framework Cocoa -framework WebKit -framework Carbon -framework UserNotifications -framework Sparkle \
+  -Xlinker -rpath -Xlinker "@loader_path/../Frameworks"
 echo "    swiftc OK"
+mkdir -p "$APP/Contents/Frameworks"
+cp -R "$HERE/vendor/Sparkle.framework" "$APP/Contents/Frameworks/"
+echo "    Sparkle framework OK"
 
 echo "==> 4/7 拷贝运行时（node + dsh）"
 # node 官方运行时
@@ -95,6 +100,9 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>LSMinimumSystemVersion</key><string>13.0</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>NSUserNotificationUsageDescription</key><string>用于向你发送任务完成与微信桥状态通知。</string>
+  <key>SUFeedURL</key><string>https://github.com/piggy00544/dsh-upgrade-kit/releases/latest/download/appcast.xml</string>
+  <key>SUEnableAutomaticChecks</key><true/>
+  <key>SUPublicEDKey</key><string>L2KcNo/KrFRb5hZJjyW6Zeygpa+sr3BDyZb27h8xYJs=</string>
   <key>CFBundleURLTypes</key>
   <array><dict>
     <key>CFBundleURLName</key><string>DSH 装备版通知</string>
