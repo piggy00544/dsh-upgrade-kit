@@ -1,8 +1,15 @@
-# DSH 装备版 v0.1.1
+# DSH 装备版 v0.1.2（已公证）
 
-**下载：DSH-Upgrade-Kit-0.1.1.dmg**（macOS 13+，Apple Silicon）
+**下载：DSH-Upgrade-Kit-0.1.2.dmg**（macOS 13+，Apple Silicon）
+
+✅ 本版已通过 **Apple 公证**（Developer ID: TECHBOOKS LTD）：下载 → 拖进 Applications → **双击直接打开**，无任何 Gatekeeper 拦截。
 
 给 DeepSeek Harness 的"开箱即用"安装包：双击装上，打开填一个 DeepSeek API key，五件装备全部就位，全程不碰终端。
+
+## v0.1.2 变更
+
+- **通过 Apple 公证**：无需右键 → 打开，双击即用（内含公证票据 + 安全时间戳）
+- 全量代码签名：App 内 11 个 Mach-O（含 node 运行时、原生插件、dylib）全部 Developer ID 签名
 
 ## v0.1.1 新增
 
@@ -38,7 +45,6 @@
 
 ## 已知问题
 
-- 首次打开需右键 → 打开（Gatekeeper）
 - 微信桥图片/语音消息暂不处理（只收文本）
 - 与本机已装原版 DSH 共用 3080 端口时，先启动者占用
 
