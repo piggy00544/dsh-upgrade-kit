@@ -1,10 +1,10 @@
 /**
- * @deepseek-ai/dsh-cost — browser half:
+ * dsh-cost — browser half:
  * 侧栏底部常驻"用量状态条"（实时自动刷新，无需点击）+ 点击打开详情面板。
  * 模块格式：window.__ModuleLoader__.load({id, factory(require)})。
  */
 window.__ModuleLoader__.load({
-  id: "@deepseek-ai/dsh-cost",
+  id: "dsh-cost",
   factory: function (require) {
     var module = { exports: {} };
     var exports = module.exports;
@@ -69,10 +69,10 @@ window.__ModuleLoader__.load({
       ".dc-err{color:var(--dsw-alias-state-error-primary,#dc2626);font-size:12px;margin-top:6px}",
       ".dc-loading{color:var(--dsw-alias-label-secondary);font-size:13px;padding:20px;text-align:center}"
     ].join("\n");
-    var cssTagId = "@deepseek-ai/dsh-cost/panel.module.css";
+    var cssTagId = "dsh-cost/panel.module.css";
     if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(cssTagId) + "]") === null) {
       var tag = document.createElement("style");
-      tag.dataset.plugin = "@deepseek-ai/dsh-cost";
+      tag.dataset.plugin = "dsh-cost";
       tag.dataset.pluginCss = cssTagId;
       tag.textContent = css;
       document.head.appendChild(tag);

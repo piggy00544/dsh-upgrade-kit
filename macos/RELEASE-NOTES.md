@@ -1,10 +1,17 @@
-# DSH 装备版 v0.1.6（已公证）
+# DSH 装备版 v0.1.8（已公证）
 
-**下载：DSH-Upgrade-Kit-0.1.6.dmg**（macOS 13+，Apple Silicon）
+**下载：DSH-Upgrade-Kit-0.1.8.dmg**（macOS 13+，Apple Silicon）
 
 ✅ 本版已通过 **Apple 公证**（Developer ID: TECHBOOKS LTD）：下载 → 拖进 Applications → **双击直接打开**，无任何 Gatekeeper 拦截。
 
 给 DeepSeek Harness 的"开箱即用"安装包：双击装上，打开填一个 DeepSeek API key，五件装备全部就位，全程不碰终端。
+
+## v0.1.8 变更
+
+- **修复 dsh-cost 插件模块 ID 不一致**（client bundle 注册 `@deepseek-ai/dsh-cost`，与 cordis 清单 `dsh-cost` 不匹配，导致前端报 "loaded without registering"）——三处 ID 全部统一为 `dsh-cost`，已用全新 DSH_HOME 冷启动验证
+- **first-run.sh 幂等**：重复运行不再追加重复 `llm-deepseek` 配置块（先删旧块再写入）
+- **不杀在线服务**：3080 已有服务在线时跳过注册重启
+- 跳过 v0.1.7（其修复已并入本版）
 
 ## v0.1.6 变更
 

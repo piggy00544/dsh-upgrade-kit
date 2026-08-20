@@ -45,8 +45,27 @@ else
   echo "· 跳过 key（稍后在设置里填）"
 fi
 
-# ---- 3.5 自定义 API 端点（内部部署）----
+# ---- 3.5 自定义 API 端点（内部部署，幂等：先删旧 llm-deepseek 块再写）----
 if [ -n "$BASE_URL" ] || [ -n "$MODEL_ID" ]; then
+  # 删除已有的 llm-deepseek 块（防重复 key）
+  python3 - "$HOME_DIR/settings.yaml" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p).read()
+idx = s.find("llm-deepseek:")
+if idx >= 0:
+    head = s[:idx].rstrip()
+    body = s[idx:]
+    # 找到块结束：下一个顶层键（行首无缩进的 key:）
+    lines = body.split("\n")
+    end = len(lines)
+    for i, ln in enumerate(lines[1:], 1):
+        if ln and not ln[0].isspace() and ":" in ln and not ln.startswith("#"):
+            end = i
+            break
+    tail = "\n".join(lines[end:])
+    open(p, "w").write(head + "\n" + tail if head else tail)
+PY
   {
     echo ""
     echo "llm-deepseek:"
@@ -96,9 +115,13 @@ cat > "$WEB_PLIST" <<PLIST
   <key>StandardErrorPath</key><string>$USER_BASE/web.err.log</string>
 </dict></plist>
 PLIST
-launchctl bootout "gui/$(id -u)/com.dsh-upgrade.dsh-web" 2>/dev/null || true
-launchctl bootstrap "gui/$(id -u)" "$WEB_PLIST" 2>/dev/null || true
-echo "✔ web 服务 LaunchAgent 已注册"
+if curl -s -o /dev/null -m 2 "http://127.0.0.1:3080/" 2>/dev/null; then
+  echo "· 3080 已有服务在线，跳过注册重启"
+else
+  launchctl bootout "gui/$(id -u)/com.dsh-upgrade.dsh-web" 2>/dev/null || true
+  launchctl bootstrap "gui/$(id -u)" "$WEB_PLIST" 2>/dev/null || true
+  echo "✔ web 服务 LaunchAgent 已注册"
+fi
 
 # ---- 5. 微信双向通道 ----
 BRIDGE="$USER_BASE/bridges/wechat-bridge"

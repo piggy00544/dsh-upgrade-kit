@@ -1,5 +1,5 @@
 /**
- * @deepseek-ai/dsh-cost — host half: 用量台账 + 峰谷计价 + DeepSeek 余额代理。
+ * dsh-cost — host half: 用量台账 + 峰谷计价 + DeepSeek 余额代理。
  * 纯 Node 内置模块实现，零外部依赖（profile node_modules 本地插件）。
  * 数据源：$DSH_HOME/sessions/<cwd>/<session>/session.jsonl.zstd 的 assistant/message 事件。
  */
