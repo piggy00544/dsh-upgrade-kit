@@ -102,6 +102,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>NSUserNotificationUsageDescription</key><string>用于向你发送任务完成与微信桥状态通知。</string>
   <key>SUFeedURL</key><string>https://github.com/piggy00544/dsh-upgrade-kit/releases/latest/download/appcast.xml</string>
   <key>SUEnableAutomaticChecks</key><true/>
+  <key>SUScheduledCheckInterval</key><integer>14400</integer>
   <key>SUPublicEDKey</key><string>L2KcNo/KrFRb5hZJjyW6Zeygpa+sr3BDyZb27h8xYJs=</string>
   <key>CFBundleURLTypes</key>
   <array><dict>

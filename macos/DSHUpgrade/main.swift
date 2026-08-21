@@ -450,6 +450,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         appMenu.addItem(withTitle: "关于 DSH 装备版",
                         action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
                         keyEquivalent: "")
+        appMenu.addItem(withTitle: "检查更新…",
+                        action: #selector(checkForUpdates), keyEquivalent: "")
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "隐藏 DSH 装备版",
                         action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
@@ -542,6 +544,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         }
         let menu = NSMenu()
         menu.addItem(withTitle: "显示 DSH 装备版", action: #selector(showWindow), keyEquivalent: "")
+        menu.addItem(withTitle: "检查更新…", action: #selector(checkForUpdates), keyEquivalent: "")
         menu.addItem(withTitle: "连接微信…", action: #selector(connectWechat), keyEquivalent: "")
         menu.addItem(withTitle: "配置视觉模型…", action: #selector(configureVision), keyEquivalent: "")
         menu.addItem(withTitle: "重新加载", action: #selector(reload), keyEquivalent: "")
@@ -691,6 +694,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
 
     @objc func openInBrowser() {
         NSWorkspace.shared.open(kDSHURL)
+    }
+
+    @objc func checkForUpdates() {
+        updaterController.updater.checkForUpdates()
     }
 
     @objc func rerunWizard() {

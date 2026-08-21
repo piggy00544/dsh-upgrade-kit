@@ -1,10 +1,15 @@
-# DSH 装备版 v0.2.3（已公证）
+# DSH 装备版 v0.2.4（已公证）
 
-**下载：DSH-Upgrade-Kit-0.2.3.dmg**（macOS 13+，Apple Silicon）
+**下载：DSH-Upgrade-Kit-0.2.4.dmg**（macOS 13+，Apple Silicon）
 
 ✅ 本版已通过 **Apple 公证**（Developer ID: TECHBOOKS LTD）：下载 → 拖进 Applications → **双击直接打开**，无任何 Gatekeeper 拦截。
 
 给 DeepSeek Harness 的"开箱即用"安装包：双击装上，打开填一个 DeepSeek API key，五件装备全部就位，全程不碰终端。
+
+## v0.2.4 变更
+
+- 菜单栏「DSH 装备版 → 检查更新…」与托盘菜单：手动强制检查更新（Sparkle 自动菜单注入未生效的手动兜底）
+- 自动检查频率：每天一次 → 每 4 小时一次
 
 ## v0.2.3 变更
 
