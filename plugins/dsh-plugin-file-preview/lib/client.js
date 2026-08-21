@@ -142,12 +142,12 @@ function createPanelStore() {
       state.open && id !== state.selectedId && set({ selectedId: id });
     },
     refresh,
-    upload: async (fileList) => {
-      let sessionId = state.sessionId;
+    upload: async (fileList, sessionIdOverride) => {
+      let sessionId = sessionIdOverride ?? state.sessionId;
       if (!sessionId || state.uploading) return;
       let files = Array.from(fileList);
       if (files.length !== 0) {
-        set({ uploading: !0 });
+        (!state.open || state.sessionId !== sessionId) && (state = { ...CLOSED, open: !0, sessionId }, emit()), set({ uploading: !0 });
         try {
           for (let file of files) {
             let result = await API.upload(file, sessionId);
@@ -343,7 +343,9 @@ function PreviewBody({ file, url, t }) {
     ] })
   ] });
 }
+var currentSessionId = null;
 function AttachmentsButton({ sessionId, t, panel }) {
+  currentSessionId = sessionId;
   let state = (0, import_react.useSyncExternalStore)(panel.subscribe, panel.getSnapshot), count = (0, import_react.useMemo)(
     () => state.sessionId === sessionId && state.open ? state.files.length : -1,
     [state.sessionId, state.open, state.version, state.files.length, sessionId]
@@ -560,6 +562,42 @@ var uiCard = {
   },
   name: { flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }
 };
+function GlobalDropLayer({ t, panel }) {
+  let [dragging, setDragging] = (0, import_react.useState)(!1);
+  return (0, import_react.useEffect)(() => {
+    let hasFiles = (e) => e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files"), onDragOver = (e) => {
+      hasFiles(e) && (e.preventDefault(), setDragging(!0));
+    }, onDragLeave = (e) => {
+      e.relatedTarget === null && setDragging(!1);
+    }, onDrop = (e) => {
+      !e.dataTransfer || e.dataTransfer.files.length === 0 || (e.preventDefault(), setDragging(!1), currentSessionId && panel.upload(e.dataTransfer.files, currentSessionId));
+    };
+    return window.addEventListener("dragover", onDragOver), window.addEventListener("dragleave", onDragLeave), window.addEventListener("drop", onDrop), () => {
+      window.removeEventListener("dragover", onDragOver), window.removeEventListener("dragleave", onDragLeave), window.removeEventListener("drop", onDrop);
+    };
+  }, [panel]), dragging ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 9999,
+    pointerEvents: "none",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "rgba(1,1,2,0.55)",
+    backdropFilter: "blur(2px)"
+  }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: {
+    border: "2px dashed var(--dsw-alias-state-business-primary, #4d6bfe)",
+    borderRadius: 16,
+    padding: "36px 56px",
+    background: "var(--dsw-alias-bg-layer-2, #101014)",
+    color: "var(--dsw-alias-label-primary, #f7f8f8)",
+    fontSize: 15,
+    fontWeight: 600
+  }, children: [
+    t("dropHint"),
+    " \xB7 \u677E\u5F00\u4E0A\u4F20\u5230\u5F53\u524D\u4F1A\u8BDD"
+  ] }) }) : null;
+}
 function TurnTailPreview({ openFile, matched, useSessions, sessionId, t, panel }) {
   let cwd = useSessions((s) => s)?.byId?.[sessionId]?.cwd, cards = (0, import_react.useMemo)(
     () => matched.map((path) => {
@@ -631,6 +669,19 @@ function apply(ctx) {
         })
       },
       PreviewPanel
+    )
+  ), ctx.slots.inject(
+    "shell.overlay",
+    () => ctx.slots.register(
+      {
+        name: "shell.overlay",
+        id: "file-preview-global-drop",
+        inject: () => ({
+          t,
+          panel
+        })
+      },
+      GlobalDropLayer
     )
   ), ctx.slots.inject(
     "conversation.chat.turnTail",

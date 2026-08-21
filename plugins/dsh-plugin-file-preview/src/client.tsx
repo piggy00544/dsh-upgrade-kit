@@ -220,11 +220,16 @@ function createPanelStore(): PanelStore {
       if (state.open && id !== state.selectedId) set({ selectedId: id });
     },
     refresh,
-    upload: async (fileList) => {
-      const sessionId = state.sessionId;
+    upload: async (fileList, sessionIdOverride?: string) => {
+      const sessionId = sessionIdOverride ?? state.sessionId;
       if (!sessionId || state.uploading) return;
       const files = Array.from(fileList);
       if (files.length === 0) return;
+      // 全局拖拽入口：面板未开或会话不同时，先打开并锁定该会话
+      if (!state.open || state.sessionId !== sessionId) {
+        state = { ...CLOSED, open: true, sessionId };
+        emit();
+      }
       set({ uploading: true });
       try {
         for (const file of files) {
@@ -477,7 +482,11 @@ type HeaderProps = {
   panel: PanelStore;
 };
 
+// 当前会话 id（AttachmentsButton 渲染时更新，供全局拖拽层使用）
+let currentSessionId: string | null = null;
+
 function AttachmentsButton({ sessionId, t, panel }: HeaderProps) {
+  currentSessionId = sessionId;
   const state = useSyncExternalStore(panel.subscribe, panel.getSnapshot);
   const count = useMemo(
     () => (state.sessionId === sessionId && state.open ? state.files.length : -1),
@@ -793,6 +802,51 @@ type TurnTailProps = {
   panel: PanelStore;
 };
 
+/** 全局拖拽层：文件拖到窗口任意位置 → 提示 + 松手上传到当前会话。 */
+function GlobalDropLayer({ t, panel }: { t: (key: string) => string; panel: PanelStore }) {
+  const [dragging, setDragging] = useState(false);
+  useEffect(() => {
+    const hasFiles = (e: DragEvent) => e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files");
+    const onDragOver = (e: DragEvent) => {
+      if (hasFiles(e)) { e.preventDefault(); setDragging(true); }
+    };
+    const onDragLeave = (e: DragEvent) => {
+      if (e.relatedTarget === null) setDragging(false);
+    };
+    const onDrop = (e: DragEvent) => {
+      if (!e.dataTransfer || e.dataTransfer.files.length === 0) return;
+      e.preventDefault();
+      setDragging(false);
+      if (currentSessionId) void panel.upload(e.dataTransfer.files, currentSessionId);
+    };
+    window.addEventListener("dragover", onDragOver);
+    window.addEventListener("dragleave", onDragLeave);
+    window.addEventListener("drop", onDrop);
+    return () => {
+      window.removeEventListener("dragover", onDragOver);
+      window.removeEventListener("dragleave", onDragLeave);
+      window.removeEventListener("drop", onDrop);
+    };
+  }, [panel]);
+  if (!dragging) return null;
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(1,1,2,0.55)", backdropFilter: "blur(2px)",
+    }}>
+      <div style={{
+        border: "2px dashed var(--dsw-alias-state-business-primary, #4d6bfe)",
+        borderRadius: 16, padding: "36px 56px",
+        background: "var(--dsw-alias-bg-layer-2, #101014)", color: "var(--dsw-alias-label-primary, #f7f8f8)",
+        fontSize: 15, fontWeight: 600,
+      }}>
+        {t("dropHint")} · 松开上传到当前会话
+      </div>
+    </div>
+  );
+}
+
 function TurnTailPreview({ openFile, matched, useSessions, sessionId, t, panel }: TurnTailProps) {
   const sessions = useSessions((s) => s) as {
     byId?: Record<string, { cwd?: string }>;
@@ -897,6 +951,20 @@ function apply(ctx: {
         }),
       },
       PreviewPanel,
+    ),
+  );
+
+  ctx.slots.inject("shell.overlay", () =>
+    ctx.slots.register(
+      {
+        name: "shell.overlay",
+        id: "file-preview-global-drop",
+        inject: () => ({
+          t,
+          panel,
+        }),
+      },
+      GlobalDropLayer,
     ),
   );
 
