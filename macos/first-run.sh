@@ -6,6 +6,7 @@ set -uo pipefail
 API_KEY="${1:-}"
 BASE_URL="${2:-}"
 MODEL_ID="${3:-}"
+PROTOCOL="${4:-deepseek}"
 APP_DIR="$(cd "$(dirname "$0")/../.." && pwd)"            # Contents/Resources/.. = App 根
 RES="$APP_DIR/Contents/Resources"
 TPL="$RES/home-template"
@@ -45,46 +46,81 @@ else
   echo "· 跳过 key（稍后在设置里填）"
 fi
 
-# ---- 3.5 自定义 API 端点（内部部署，幂等：先删旧 llm-deepseek 块再写）----
+# ---- 3.5 自定义 API 端点与协议（幂等：先删旧块再写）----
 if [ -n "$BASE_URL" ] || [ -n "$MODEL_ID" ]; then
-  # 删除已有的 llm-deepseek 块（防重复 key）
+  # 删除旧的 llm-deepseek 与 llm-pi-ai 块（防重复 key）
   python3 - "$HOME_DIR/settings.yaml" <<'PY'
 import sys
 p = sys.argv[1]
 s = open(p).read()
-idx = s.find("llm-deepseek:")
-if idx >= 0:
-    head = s[:idx].rstrip()
-    body = s[idx:]
-    # 找到块结束：下一个顶层键（行首无缩进的 key:）
-    lines = body.split("\n")
-    end = len(lines)
-    for i, ln in enumerate(lines[1:], 1):
-        if ln and not ln[0].isspace() and ":" in ln and not ln.startswith("#"):
-            end = i
-            break
-    tail = "\n".join(lines[end:])
-    open(p, "w").write(head + "\n" + tail if head else tail)
+for key in ("llm-deepseek:", "llm-pi-ai:"):
+    idx = s.find(key)
+    while idx >= 0:
+        head = s[:idx].rstrip()
+        body = s[idx:]
+        lines = body.split("\n")
+        end = len(lines)
+        for i, ln in enumerate(lines[1:], 1):
+            if ln and not ln[0].isspace() and ":" in ln and not ln.startswith("#"):
+                end = i
+                break
+        s = head + "\n" + "\n".join(lines[end:]) if head else "\n".join(lines[end:])
+        idx = s.find(key)
+open(p, "w").write(s)
 PY
-  {
-    echo ""
-    echo "llm-deepseek:"
-    [ -n "$BASE_URL" ] && echo "  baseURL: '$BASE_URL'"
-    if [ -n "$MODEL_ID" ]; then
-      echo "  models:"
-      echo "$MODEL_ID" | tr ',' '\n' | while IFS= read -r mid; do
-        [ -z "$mid" ] && continue
-        echo "    - id: '$mid'"
-        echo "      name: '$mid'"
-      done
-    fi
-  } >> "$HOME_DIR/settings.yaml"
-  # 默认模型跟随第一个内部模型 ID
-  if [ -n "$MODEL_ID" ]; then
+
+  if [ "$PROTOCOL" = "openai-completions" ]; then
+    # ---- OpenAI Completions 协议：llm-pi-ai 路由（内部网关推荐）----
+    ROUTE="internal"
+    CRED_ENV="INTERNAL_API_KEY"
+    # 凭据：只写协议对应的环境变量名
+    printf '%s: %s\n' "$CRED_ENV" "$API_KEY" > "$HOME_DIR/.credentials.yaml"
+    chmod 600 "$HOME_DIR/.credentials.yaml"
+    {
+      echo ""
+      echo "llm-pi-ai:"
+      echo "  providers:"
+      echo "    $ROUTE:"
+      echo "      apiKeyEnv: $CRED_ENV"
+      echo "      displayName: 内部网关"
+      echo "      baseURL: '$BASE_URL'"
+      echo "      api: openai-completions"
+      if [ -n "$MODEL_ID" ]; then
+        echo "      models:"
+        echo "$MODEL_ID" | tr ',' '\n' | while IFS= read -r mid; do
+          [ -z "$mid" ] && continue
+          echo "        - id: '$mid'"
+          echo "          name: '$mid'"
+        done
+      fi
+    } >> "$HOME_DIR/settings.yaml"
+    # 默认模型走该路由
     FIRST_MODEL="$(echo "$MODEL_ID" | tr ',' '\n' | head -1)"
-    sed -i '' "s/  model: deepseek-v4-pro/  model: $FIRST_MODEL/" "$HOME_DIR/settings.yaml"
+    sed -i '' "s/  provider: deepseek-official/  provider: $ROUTE/" "$HOME_DIR/settings.yaml"
+    [ -n "$MODEL_ID" ] && sed -i '' "s/  model: deepseek-v4-pro/  model: $FIRST_MODEL/" "$HOME_DIR/settings.yaml"
+    echo "✔ 已按 OpenAI Completions 协议写入（路由 $ROUTE，凭据 $CRED_ENV）"
+  else
+    # ---- DeepSeek 官方协议：llm-deepseek 段（原有逻辑）----
+    {
+      echo ""
+      echo "llm-deepseek:"
+      [ -n "$BASE_URL" ] && echo "  baseURL: '$BASE_URL'"
+      if [ -n "$MODEL_ID" ]; then
+        echo "  models:"
+        echo "$MODEL_ID" | tr ',' '\n' | while IFS= read -r mid; do
+          [ -z "$mid" ] && continue
+          echo "    - id: '$mid'"
+          echo "      name: '$mid'"
+        done
+      fi
+    } >> "$HOME_DIR/settings.yaml"
+    # 默认模型跟随第一个内部模型 ID
+    if [ -n "$MODEL_ID" ]; then
+      FIRST_MODEL="$(echo "$MODEL_ID" | tr ',' '\n' | head -1)"
+      sed -i '' "s/  model: deepseek-v4-pro/  model: $FIRST_MODEL/" "$HOME_DIR/settings.yaml"
+    fi
+    echo "✔ 自定义端点已写入 settings.yaml（baseURL=$BASE_URL modelId=$MODEL_ID）"
   fi
-  echo "✔ 自定义端点已写入 settings.yaml（baseURL=$BASE_URL modelId=$MODEL_ID）"
 fi
 
 # ---- 4. LaunchAgent：web 服务 ----

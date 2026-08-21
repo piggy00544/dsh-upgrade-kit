@@ -340,6 +340,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
           <details style="margin-bottom:20px">
             <summary style="font-size:13px;color:#8a8f98;cursor:pointer;user-select:none">高级选项：自定义 API 地址（内部部署用）</summary>
             <div style="margin-top:10px">
+              <label for="proto">API 协议（响应模式）</label>
+              <select id="proto" style="width:100%;background:#0f1011;border:1px solid #34343a;border-radius:8px;color:#f7f8f8;font-size:13px;padding:10px 12px;margin-bottom:14px;outline:none">
+                <option value="deepseek">DeepSeek 官方</option>
+                <option value="openai-completions">OpenAI Completions（内部网关推荐）</option>
+              </select>
               <label for="base">API 地址（留空 = 官方 api.deepseek.com）</label>
               <input id="base" type="text" placeholder="如 http://10.0.0.8:8080/v1" autocomplete="off">
               <label for="model" style="margin-top:10px">模型 ID（多个用英文逗号分隔；留空 = deepseek-v4-pro）</label>
@@ -369,12 +374,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
           const payload = JSON.stringify({
             key: key,
             baseURL: document.getElementById('base').value.trim(),
-            modelId: document.getElementById('model').value.trim()
+            modelId: document.getElementById('model').value.trim(),
+            protocol: document.getElementById('proto').value
           });
           window.webkit.messageHandlers.saveKey.postMessage(payload);
         }
         go.addEventListener('click', submit);
         keyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+        // 填了自定义 API 地址 → 协议自动切到 OpenAI Completions（内部网关兼容性最好，可手动改回）
+        document.getElementById('base').addEventListener('input', function () {
+          document.getElementById('proto').value = 'openai-completions';
+        });
         document.getElementById('later').addEventListener('click', (e) => {
           e.preventDefault();
           window.webkit.messageHandlers.saveKey.postMessage('');
@@ -413,22 +423,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         var key = (message.body as? String) ?? ""
         var baseURL = ""
         var modelId = ""
+        var protocolName = "deepseek"
         if let data = key.data(using: .utf8),
            let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
             key = (obj["key"] as? String) ?? ""
             baseURL = (obj["baseURL"] as? String) ?? ""
             modelId = (obj["modelId"] as? String) ?? ""
+            protocolName = (obj["protocol"] as? String) ?? "deepseek"
         }
         DispatchQueue.global().async { [weak self] in
-            self?.runFirstSetup(key: key, baseURL: baseURL, modelId: modelId)
+            self?.runFirstSetup(key: key, baseURL: baseURL, modelId: modelId, protocolName: protocolName)
         }
     }
 
-    func runFirstSetup(key: String, baseURL: String, modelId: String) {
+    func runFirstSetup(key: String, baseURL: String, modelId: String, protocolName: String) {
         let setup = Bundle.main.bundleURL.appendingPathComponent("Contents/Resources/first-run.sh").path
         let proc = Process()
         proc.executableURL = URL(fileURLWithPath: "/bin/bash")
-        proc.arguments = [setup, key, baseURL, modelId]
+        proc.arguments = [setup, key, baseURL, modelId, protocolName]
         let pipe = Pipe()
         proc.standardOutput = pipe
         proc.standardError = pipe
