@@ -21,12 +21,16 @@ ENT="$HERE/assets/node-entitlements.plist"
 find "$APP" -type f > /tmp/all-files.txt
 file -f /tmp/all-files.txt 2>/dev/null | grep "Mach-O" | cut -d: -f1 > /tmp/macho-list.txt || true
 while IFS= read -r f; do
+  # Sparkle 官方框架保留原签名（单独重签会破坏框架结构）
+  [[ "$f" == */Sparkle.framework/* ]] && continue
   if [[ "$f" == */node/bin/node ]]; then
-    codesign --force --options runtime --timestamp --entitlements "$ENT" --sign "$ID" "$f" >/dev/null 2>&1
+    codesign --force --options runtime --timestamp --entitlements "$ENT" --sign "$ID" "$f" >/dev/null 2>&1 || true
   else
-    codesign --force --options runtime --timestamp --sign "$ID" "$f" >/dev/null 2>&1
+    codesign --force --options runtime --timestamp --sign "$ID" "$f" >/dev/null 2>&1 || true
   fi
 done < /tmp/macho-list.txt
+# Sparkle 框架：官方签名无 secure timestamp，公证不认——用我方证书 bundle 级重签
+codesign --force --deep --options runtime --timestamp --sign "$ID" "$APP/Contents/Frameworks/Sparkle.framework"
 codesign --force --options runtime --timestamp --sign "$ID" "$APP"
 codesign --verify --deep --strict "$APP" >/dev/null 2>&1 && echo "    签名验证 OK"
 

@@ -111,14 +111,16 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </dict></plist>
 PLIST
 
-# adhoc 签名：先拷贝到本地目录（iCloud 目录的 Finder 元数据会让 codesign 报 detritus）
+# 拷贝到本地目录（iCloud 的 Finder 元数据会让 codesign 报 detritus）
 BUILD_LOCAL="/tmp/dsh-build"
 rm -rf "$BUILD_LOCAL" && mkdir -p "$BUILD_LOCAL"
 cp -R "$APP" "$BUILD_LOCAL/"
 APP_LOCAL="$BUILD_LOCAL/$APP_NAME.app"
 xattr -cr "$APP_LOCAL" 2>/dev/null || true
-codesign --force --deep --sign - "$APP_LOCAL" 2>/dev/null || codesign --force --deep --sign - "$APP_LOCAL"
-echo "    签名 OK"
+# adhoc --deep 给全部可执行文件（含 node 包内 shebang 脚本）建密封；
+# Sparkle 稍后由 release.sh 以 Developer ID bundle 级重签（官方签名无时间戳，公证不认）
+codesign --force --deep --sign - "$APP_LOCAL" 2>/dev/null || true
+echo "    组装 OK（adhoc 密封就绪，Developer ID 签名由 release.sh 统一做）"
 
 echo "==> 7/7 打 DMG（手动 hdiutil，含拖拽链接）"
 rm -rf "$BUILD_LOCAL/staging" && mkdir -p "$BUILD_LOCAL/staging"

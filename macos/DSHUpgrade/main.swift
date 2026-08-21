@@ -469,6 +469,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         fileMenu.addItem(withTitle: "重新加载", action: #selector(reload), keyEquivalent: "r")
         fileMenu.addItem(withTitle: "在浏览器中打开", action: #selector(openInBrowser), keyEquivalent: "")
         fileMenu.addItem(.separator())
+        fileMenu.addItem(withTitle: "连接微信…", action: #selector(connectWechat), keyEquivalent: "")
         fileMenu.addItem(withTitle: "重新运行设置向导", action: #selector(rerunWizard), keyEquivalent: "")
         fileMenu.addItem(.separator())
         fileMenu.addItem(withTitle: "关闭窗口",
@@ -540,6 +541,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         }
         let menu = NSMenu()
         menu.addItem(withTitle: "显示 DSH 装备版", action: #selector(showWindow), keyEquivalent: "")
+        menu.addItem(withTitle: "连接微信…", action: #selector(connectWechat), keyEquivalent: "")
         menu.addItem(withTitle: "重新加载", action: #selector(reload), keyEquivalent: "")
         menu.addItem(withTitle: "在浏览器中打开", action: #selector(openInBrowser), keyEquivalent: "")
         menu.addItem(.separator())
@@ -691,6 +693,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
 
     @objc func rerunWizard() {
         showWelcome()
+    }
+
+    @objc func connectWechat() {
+        // 已配 key 时直接打开扫码页；未配置则先走向导
+        if isFirstRun() {
+            showWelcome()
+        } else {
+            showWechatPage()
+        }
     }
 
     @objc func toggle() {
