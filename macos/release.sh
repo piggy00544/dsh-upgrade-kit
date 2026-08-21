@@ -42,15 +42,34 @@ rm -rf "$RELEASE_DIR" && mkdir -p "$RELEASE_DIR"
 ditto -c -k --keepParent "$APP" "$RELEASE_DIR/DSH-Upgrade-Kit-$VERSION.zip"
 echo "    zip: DSH-Upgrade-Kit-$VERSION.zip ($(du -h "$RELEASE_DIR/DSH-Upgrade-Kit-$VERSION.zip" | cut -f1))"
 
-echo "==> 4/7 生成 appcast（EdDSA 签名，私钥取钥匙串）"
-# generate_appcast 需 Sparkle 工具；找不到时提示安装
-if [ ! -x "$SPARKLE_BIN/generate_appcast" ]; then
-  echo "    下载 Sparkle 工具…"
-  mkdir -p /tmp/sparkle
-  curl -sL -o /tmp/sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/2.9.6/Sparkle-2.9.6.tar.xz"
-  tar -xJf /tmp/sparkle.tar.xz -C /tmp/sparkle --strip-components=0
-fi
-(cd "$RELEASE_DIR" && "$SPARKLE_BIN/generate_appcast" --download-url-prefix "https://github.com/piggy00544/dsh-upgrade-kit/releases/download/v$VERSION/" . 2>&1 | tail -3)
+echo "==> 4/7 生成 appcast（文件版 Ed25519 私钥 + sign_update）"
+KEY_FILE="$HOME/.config/dsh-upgrade-keys/ed25519.raw.txt"
+[ -f "$KEY_FILE" ] || { echo "    缺裸私钥 $KEY_FILE（见 release 文档）"; exit 1; }
+SIG=$(cd "$RELEASE_DIR" && "$SPARKLE_BIN/sign_update" "DSH-Upgrade-Kit-$VERSION.zip" --ed-key-file "$KEY_FILE" | head -1)
+ED_SIG=$(echo "$SIG" | grep -o 'sparkle:edSignature="[^"]*"' | sed 's/sparkle:edSignature="//;s/"$//')
+LEN=$(stat -f%z "$RELEASE_DIR/DSH-Upgrade-Kit-$VERSION.zip")
+cat > "$RELEASE_DIR/$FEED_NAME" <<FEED
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>DSH 装备版更新</title>
+    <description>DSH 装备版（dsh-upgrade-kit）自动更新频道</description>
+    <language>zh-CN</language>
+    <item>
+      <title>$VERSION</title>
+      <pubDate>$(date -R)</pubDate>
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+      <enclosure url="https://github.com/piggy00544/dsh-upgrade-kit/releases/download/v$VERSION/DSH-Upgrade-Kit-$VERSION.zip"
+                 sparkle:version="$VERSION"
+                 sparkle:shortVersionString="$VERSION"
+                 sparkle:edSignature="$ED_SIG"
+                 length="$LEN"
+                 type="application/octet-stream"/>
+    </item>
+  </channel>
+</rss>
+FEED
+(cd "$RELEASE_DIR" && "$SPARKLE_BIN/sign_update" "$FEED_NAME" --ed-key-file "$KEY_FILE" >/dev/null 2>&1)
 ls -la "$RELEASE_DIR/$FEED_NAME"
 
 echo "==> 5/7 打 DMG"

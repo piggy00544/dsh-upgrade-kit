@@ -306,6 +306,8 @@ window.__ModuleLoader__.load({
       var todayUsd = todayRow ? todayRow.usd : null;
       var todayTokens = todayRow ? (todayRow.tokens.in + todayRow.tokens.out) : null;
       var balanceRmb = cny ? Number(cny.total_balance) : null;
+      var spendLabel = today ? "今日花费" : "累计花费";
+      var tokenLabel = today ? "今日 token" : "累计 token";
 
       return jsxs(Fragment, { children: [
         props.wide
@@ -315,7 +317,7 @@ window.__ModuleLoader__.load({
               onClick: function () { open[1](true); },
               children: jsxs(Fragment, { children: [
                 jsxs("div", { className: "dc-strip-row", children: [
-                  jsx("span", { className: "k", children: "今日花费" }),
+                  jsx("span", { className: "k", children: spendLabel }),
                   jsx("span", { className: "v", children: jsxs(Fragment, { children: [
                     todayRmb == null ? "…" : fmtMoney(todayRmb),
                     todayUsd == null ? null : jsx("span", { className: "usd", children: fmtUsd(todayUsd) })
@@ -326,14 +328,14 @@ window.__ModuleLoader__.load({
                   jsx("span", { className: "v", children: balanceRmb == null ? "…" : "¥" + balanceRmb.toFixed(2) })
                 ] }),
                 jsxs("div", { className: "dc-strip-row", children: [
-                  jsx("span", { className: "k", children: "今日 token" }),
+                  jsx("span", { className: "k", children: tokenLabel }),
                   jsx("span", { className: "v", children: todayTokens == null ? "…" : fmtTokens(todayTokens) })
                 ] })
               ] })
             })
           : jsx("button", {
               className: "dc-entry",
-              title: "今日 " + (todayRmb == null ? "…" : fmtMoney(todayRmb)) + " · 余额 " + (balanceRmb == null ? "…" : "¥" + balanceRmb.toFixed(2)) + " · 点击看详情",
+              title: (spendLabel === "今日花费" ? "今日" : "累计") + " " + (todayRmb == null ? "…" : fmtMoney(todayRmb)) + " · 余额 " + (balanceRmb == null ? "…" : "¥" + balanceRmb.toFixed(2)) + " · 点击看详情",
               onClick: function () { open[1](true); },
               children: jsxs(Fragment, { children: [
                 jsx("span", { className: "dc-entry-icon", children: "¥" }),
