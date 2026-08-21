@@ -1,12 +1,18 @@
-# DSH 装备版 v0.2.5（已公证）
+# DSH 装备版 v0.3.0（已公证）
 
-**下载：DSH-Upgrade-Kit-0.2.5.dmg**（macOS 13+，Apple Silicon）
+**下载：DSH-Upgrade-Kit-0.3.0.dmg**（macOS 13+，Apple Silicon）
 
 ✅ 本版已通过 **Apple 公证**（Developer ID: TECHBOOKS LTD）：下载 → 拖进 Applications → **双击直接打开**，无任何 Gatekeeper 拦截。
 
 给 DeepSeek Harness 的"开箱即用"安装包：双击装上，打开填一个 DeepSeek API key，五件装备全部就位，全程不碰终端。
 
-## v0.2.5 变更
+## v0.3.0 变更
+
+- **底层升级：DeepSeek Harness 0.1.0-rc.8 → 0.1.1-rc.1**（官方新增视觉模型 DeepSeek-V4-Flash-Vision-Exp、@ 引用布局修复、Markdown 表格自适应；五装备已全部回归验证）
+- **向导新增 API 协议选择**：填自定义 API 地址时自动切到「OpenAI Completions」（解决内部网关"一思考就断"），官方用户保持默认
+- 跳过 v0.2.5（修复已并入本版）
+
+## v0.2.4 变更
 
 - **向导新增 API 协议选择**（高级选项）：填了自定义 API 地址时自动切到「OpenAI Completions」（内部网关推荐，兼容无 [DONE] 收尾的流式响应，解决"一思考就断"）；官方用户保持 DeepSeek 默认
 - 协议选择落盘为 llm-pi-ai 路由（apiKeyEnv/api/baseURL/models + 默认模型指向该路由），已冷启动验证
