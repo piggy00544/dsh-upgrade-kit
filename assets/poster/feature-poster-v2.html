@@ -1,0 +1,93 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--canvas:#07080c;--s1:#101118;--s2:#16181f;--line:#262a33;--ink:#f5f6f8;--muted:#c6ccd6;--sub:#7a8290;--pri:#5e6ad2;--pri2:#8f9bff;--ok:#3ddc84}
+body{width:900px;height:1240px;background:var(--canvas);font-family:-apple-system,"SF Pro Display","PingFang SC",system-ui,sans-serif;color:var(--ink);overflow:hidden}
+.page{height:100%;padding:56px 56px 48px;display:flex;flex-direction:column;position:relative;
+  background:
+    radial-gradient(900px 500px at 70% -8%, rgba(94,106,210,.28), transparent 60%),
+    radial-gradient(700px 400px at -10% 40%, rgba(94,106,210,.10), transparent 55%),
+    linear-gradient(175deg,#0b0d13 0%,#07080c 60%)}
+/* hero */
+.hero{display:flex;align-items:center;gap:22px;margin-bottom:10px}
+.robot{width:86px;height:86px;border-radius:22px;background:linear-gradient(150deg,#1c1f2b,#0f1119);border:1px solid #2a2f3d;
+  display:flex;align-items:center;justify-content:center;font-size:50px;box-shadow:0 10px 30px rgba(94,106,210,.25)}
+.hero .t{font-size:46px;font-weight:700;letter-spacing:-1.5px;line-height:1.1}
+.hero .t .p{background:linear-gradient(90deg,#5e6ad2,#9aa8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{font-size:18px;color:var(--muted);margin:0 0 6px 0}
+.hero .sub b{color:#fff}
+.kicker{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--pri2);
+  background:rgba(94,106,210,.14);border:1px solid rgba(94,106,210,.35);border-radius:999px;padding:6px 14px;margin-bottom:26px}
+.kicker .dot{width:7px;height:7px;border-radius:50%;background:var(--pri2)}
+/* section label */
+.slabel{font-size:14px;font-weight:700;letter-spacing:2px;color:var(--sub);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.slabel::before{content:"";width:22px;height:2px;background:linear-gradient(90deg,var(--pri),transparent);border-radius:2px}
+/* features */
+.grid{display:flex;flex-direction:column;gap:12px;margin-bottom:34px}
+.row{display:flex;align-items:center;gap:18px;background:linear-gradient(120deg,rgba(255,255,255,.03),rgba(255,255,255,0));
+  border:1px solid var(--line);border-radius:16px;padding:18px 24px}
+.row .ic{width:52px;height:52px;border-radius:14px;flex:none;display:flex;align-items:center;justify-content:center;
+  font-size:26px;background:rgba(94,106,210,.12);border:1px solid rgba(94,106,210,.2)}
+.row .nm{font-size:22px;font-weight:700;min-width:104px;letter-spacing:-0.3px}
+.row .ds{font-size:15px;color:var(--muted);line-height:1.5}
+.row .ds b{color:var(--pri2);font-weight:600}
+/* flow */
+.flow{display:flex;align-items:stretch;gap:10px;margin-bottom:34px}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  background:var(--s1);border:1px solid var(--line);border-radius:16px;padding:22px 16px;position:relative}
+.step .e{font-size:32px}
+.step .t{font-size:18px;font-weight:700}
+.step .s{font-size:13px;color:var(--sub)}
+.step.ht{border-color:rgba(94,106,210,.5);box-shadow:0 8px 24px rgba(94,106,210,.18)}
+.arr{flex:none;align-self:center;font-size:22px;color:var(--pri);font-weight:700}
+/* badges */
+.badges{display:flex;justify-content:center;gap:12px;margin-bottom:auto}
+.badge{font-size:14px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:10px 20px;background:var(--s1)}
+.badge b{color:var(--ok);font-weight:600}
+/* cta */
+.cta{margin-top:40px;padding:24px 30px;border-radius:18px;border:1px solid rgba(94,106,210,.35);
+  background:linear-gradient(120deg,rgba(94,106,210,.18),rgba(94,106,210,.05));
+  display:flex;flex-direction:column;gap:10px}
+.cta .gh{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:19px;font-weight:600;color:#fff;letter-spacing:-0.2px}
+.cta .gh .p{color:var(--pri2)}
+.cta .wc{font-size:15px;color:var(--muted)}
+.cta .wc b{color:var(--pri2);font-weight:600}
+</style></head><body><div class="page">
+  <div class="kicker"><span class="dot"></span>DeepSeek Harness 增强版</div>
+  <div class="hero">
+    <div class="robot">🤖</div>
+    <div>
+      <div class="t">DSH <span class="p">装备版</span></div>
+      <div class="sub"><b>开箱即用</b> · 下载 → 填 key → 扫码，<b>1 分钟</b>上手</div>
+    </div>
+  </div>
+
+  <div style="height:34px"></div>
+  <div class="slabel">五件装备</div>
+  <div class="grid">
+    <div class="row"><span class="ic">💬</span><span class="nm">连微信</span><span class="ds">微信发消息远程指挥，<b>结果自动回微信</b></span></div>
+    <div class="row"><span class="ic">👁</span><span class="nm">识图片</span><span class="ds">模型没眼睛也能看图，<b>OCR / 描述 / 界面</b></span></div>
+    <div class="row"><span class="ic">💰</span><span class="nm">看花费</span><span class="ds">token 与余额，<b>侧栏点开一目了然</b></span></div>
+    <div class="row"><span class="ic">📄</span><span class="nm">揽文件</span><span class="ds">产物自动挂卡片，<b>拖文件即传</b></span></div>
+    <div class="row"><span class="ic">🌐</span><span class="nm">搜全球</span><span class="ds">多引擎检索 + 全文抓取，<b>AI 自己查资料</b></span></div>
+  </div>
+
+  <div class="slabel">上手三步</div>
+  <div class="flow">
+    <div class="step ht"><span class="e">📥</span><span class="t">下载安装</span><span class="s">一个 DMG 全包含</span></div>
+    <span class="arr">→</span>
+    <div class="step"><span class="e">🔑</span><span class="t">填 API key</span><span class="s">官方 / 内部网关都行</span></div>
+    <span class="arr">→</span>
+    <div class="step"><span class="e">📱</span><span class="t">微信扫码</span><span class="s">联动就绪</span></div>
+  </div>
+
+  <div class="badges">
+    <span class="badge">✅ <b>Apple 公证</b></span>
+    <span class="badge">📦 <b>免配置</b></span>
+    <span class="badge">🔄 <b>自动更新</b></span>
+  </div>
+
+  <div class="cta">
+    <div class="gh">github.com/<span class="p">piggy00544/dsh-upgrade-kit</span></div>
+    <div class="wc">或公众号「<b>牛村木木山</b>」回复 <b>DSH</b>，直接获取安装包</div>
+  </div>
+</div></body></html>
