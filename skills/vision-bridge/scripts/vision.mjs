@@ -94,8 +94,9 @@ const USAGE = `vision-bridge — image understanding for text-only models
 function loadConfig() {
   if (!existsSync(CONFIG_PATH)) {
     throw new Error(
-      `配置文件不存在: ${CONFIG_PATH}\n` +
-      `请执行: cp ~/.agents/skills/vision-bridge/config.example.json ${CONFIG_PATH} 并填入 apiKey`
+      `视觉功能未配置（缺 ${CONFIG_PATH}）。\n` +
+      `配置方法：打开「DSH 装备版」App 菜单 → 文件 → 配置视觉模型…，粘贴视觉 API key 即可；\n` +
+      `或手动: cp ~/.agents/skills/vision-bridge/config.example.json ${CONFIG_PATH} 并填入 apiKey`
     );
   }
   try {
@@ -123,7 +124,10 @@ function resolveProvider(cfg, want) {
       if (!p.apiKey || !p.baseURL || !p.model) throw new Error('provider "custom" 需要 apiKey、baseURL、model 三项');
       return { name: want, ...p };
     }
-    if (!p.apiKey) throw new Error(`provider "${want}" 未配置 apiKey（${CONFIG_PATH}）`);
+    if (!p.apiKey) throw new Error(
+      `视觉功能未配置：provider "${want}" 没有 apiKey（${CONFIG_PATH}）。\n` +
+      `打开「DSH 装备版」App 菜单 → 文件 → 配置视觉模型…，粘贴 key 即可`
+    );
     return { name: want, ...p };
   }
   const order = cfg.providerOrder || DEFAULT_PROVIDER_ORDER;

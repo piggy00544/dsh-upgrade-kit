@@ -470,6 +470,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         fileMenu.addItem(withTitle: "在浏览器中打开", action: #selector(openInBrowser), keyEquivalent: "")
         fileMenu.addItem(.separator())
         fileMenu.addItem(withTitle: "连接微信…", action: #selector(connectWechat), keyEquivalent: "")
+        fileMenu.addItem(withTitle: "配置视觉模型…", action: #selector(configureVision), keyEquivalent: "")
         fileMenu.addItem(withTitle: "重新运行设置向导", action: #selector(rerunWizard), keyEquivalent: "")
         fileMenu.addItem(.separator())
         fileMenu.addItem(withTitle: "关闭窗口",
@@ -542,6 +543,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         let menu = NSMenu()
         menu.addItem(withTitle: "显示 DSH 装备版", action: #selector(showWindow), keyEquivalent: "")
         menu.addItem(withTitle: "连接微信…", action: #selector(connectWechat), keyEquivalent: "")
+        menu.addItem(withTitle: "配置视觉模型…", action: #selector(configureVision), keyEquivalent: "")
         menu.addItem(withTitle: "重新加载", action: #selector(reload), keyEquivalent: "")
         menu.addItem(withTitle: "在浏览器中打开", action: #selector(openInBrowser), keyEquivalent: "")
         menu.addItem(.separator())
@@ -701,6 +703,56 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
             showWelcome()
         } else {
             showWechatPage()
+        }
+    }
+
+    @objc func configureVision() {
+        let alert = NSAlert()
+        alert.messageText = "配置视觉模型 API key"
+        alert.informativeText = "用于「看图」功能（vision-bridge）。推荐阿里百炼 DashScope，新用户限免 50 万 token。key 只写本机配置文件（权限 600）。"
+        let input = NSTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
+        input.placeholderString = "sk-...（留空则清除）"
+        alert.accessoryView = input
+        alert.addButton(withTitle: "保存")
+        alert.addButton(withTitle: "取消")
+        if alert.runModal() == .alertFirstButtonReturn {
+            let key = input.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            let ok = saveVisionKey(key)
+            let done = NSAlert()
+            done.messageText = ok ? "视觉模型已配置" : "配置失败"
+            done.informativeText = ok
+                ? "现在在 DSH 里贴图说「看这张图」就会自动识图。"
+                : "配置文件写入失败，可到 ~/.config/vision-bridge/config.json 手动填写。"
+            done.runModal()
+        }
+    }
+
+    func saveVisionKey(_ key: String) -> Bool {
+        let fm = FileManager.default
+        let cfgDir = fm.homeDirectoryForCurrentUser.path + "/.config/vision-bridge"
+        let cfgPath = cfgDir + "/config.json"
+        if !fm.fileExists(atPath: cfgPath) {
+            let tpl = Bundle.main.resourceURL?
+                .appendingPathComponent("home-template/skills/vision-bridge/config.example.json").path
+            if let tpl = tpl, fm.fileExists(atPath: tpl) {
+                try? fm.createDirectory(atPath: cfgDir, withIntermediateDirectories: true)
+                try? fm.copyItem(atPath: tpl, toPath: cfgPath)
+            }
+        }
+        guard let data = try? Data(contentsOf: URL(fileURLWithPath: cfgPath)),
+              var obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              var providers = obj["providers"] as? [String: Any],
+              var dashscope = providers["dashscope"] as? [String: Any] else { return false }
+        dashscope["apiKey"] = key
+        providers["dashscope"] = dashscope
+        obj["providers"] = providers
+        guard let out = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted]) else { return false }
+        do {
+            try out.write(to: URL(fileURLWithPath: cfgPath), options: .atomic)
+            try fm.setAttributes([.posixPermissions: 0o600], ofItemAtPath: cfgPath)
+            return true
+        } catch {
+            return false
         }
     }
 
