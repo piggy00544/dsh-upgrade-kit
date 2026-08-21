@@ -146,23 +146,24 @@ function createPanelStore() {
       let sessionId = sessionIdOverride ?? state.sessionId;
       if (!sessionId || state.uploading) return;
       let files = Array.from(fileList);
-      if (files.length !== 0) {
-        (!state.open || state.sessionId !== sessionId) && (state = { ...CLOSED, open: !0, sessionId }, emit()), set({ uploading: !0 });
-        try {
-          for (let file of files) {
-            let result = await API.upload(file, sessionId);
-            if (!state.open) return;
-            result.ok && result.file && (set({
-              files: [result.file, ...state.files.filter((f) => f.id !== result.file.id)],
-              version: state.version + 1
-            }), state = { ...state, selectedId: result.file.id }, emit());
-          }
-        } catch {
-          state.open && set({ listError: !0 });
-        } finally {
-          state.open && set({ uploading: !1 });
+      if (files.length === 0) return;
+      (!state.open || state.sessionId !== sessionId) && (state = { ...CLOSED, open: !0, sessionId }, emit()), set({ uploading: !0 });
+      let results = [];
+      try {
+        for (let file of files) {
+          let result = await API.upload(file, sessionId);
+          if (results.push(result), !state.open) return results;
+          result.ok && result.file && (set({
+            files: [result.file, ...state.files.filter((f) => f.id !== result.file.id)],
+            version: state.version + 1
+          }), state = { ...state, selectedId: result.file.id }, emit());
         }
+      } catch {
+        state.open && set({ listError: !0 });
+      } finally {
+        state.open && set({ uploading: !1 });
       }
+      return results;
     },
     remove: async (id) => {
       state.open && (await API.remove(id), set({
@@ -562,6 +563,17 @@ var uiCard = {
   },
   name: { flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }
 };
+function insertFileMention(path) {
+  let areas = Array.from(document.querySelectorAll("textarea")).filter(
+    (t) => t.offsetParent !== null
+  );
+  if (areas.length === 0) return !1;
+  let ta = areas[0], setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+  if (!setter) return !1;
+  let mention = path.includes(" ") ? `@"${path}"` : `@${path}`, next = ta.value ? `${ta.value}
+${mention}` : mention;
+  return setter.call(ta, next), ta.dispatchEvent(new Event("input", { bubbles: !0 })), ta.dispatchEvent(new Event("change", { bubbles: !0 })), ta.focus(), !0;
+}
 function GlobalDropLayer({ t, panel }) {
   let [dragging, setDragging] = (0, import_react.useState)(!1);
   return (0, import_react.useEffect)(() => {
@@ -570,7 +582,10 @@ function GlobalDropLayer({ t, panel }) {
     }, onDragLeave = (e) => {
       e.relatedTarget === null && setDragging(!1);
     }, onDrop = (e) => {
-      !e.dataTransfer || e.dataTransfer.files.length === 0 || (e.preventDefault(), setDragging(!1), currentSessionId && panel.upload(e.dataTransfer.files, currentSessionId));
+      !e.dataTransfer || e.dataTransfer.files.length === 0 || (e.preventDefault(), setDragging(!1), currentSessionId && panel.upload(e.dataTransfer.files, currentSessionId).then((results) => {
+        let paths = (results ?? []).filter((r) => r && r.ok && r.file && r.file.path).map((r) => r.file.path);
+        paths.length > 0 && insertFileMention(paths.join(" "));
+      }));
     };
     return window.addEventListener("dragover", onDragOver), window.addEventListener("dragleave", onDragLeave), window.addEventListener("drop", onDrop), () => {
       window.removeEventListener("dragover", onDragOver), window.removeEventListener("dragleave", onDragLeave), window.removeEventListener("drop", onDrop);

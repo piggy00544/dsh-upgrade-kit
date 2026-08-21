@@ -71,6 +71,7 @@ export type PreviewFile = {
   mediaType: string;
   bytes: number;
   time: number;
+  path?: string;
 };
 
 async function apiJson<T>(url: string, init?: RequestInit): Promise<T> {
@@ -144,7 +145,7 @@ type PanelStore = {
   close(): void;
   select(id: string): void;
   refresh(): void;
-  upload(fileList: FileList | File[]): Promise<void>;
+  upload(fileList: FileList | File[], sessionIdOverride?: string): Promise<Array<{ ok: boolean; file: PreviewFile }>>;
   remove(id: string): Promise<void>;
 };
 
@@ -231,10 +232,12 @@ function createPanelStore(): PanelStore {
         emit();
       }
       set({ uploading: true });
+      const results: Array<{ ok: boolean; file: PreviewFile }> = [];
       try {
         for (const file of files) {
           const result = await API.upload(file, sessionId);
-          if (!state.open) return;
+          results.push(result);
+          if (!state.open) return results;
           if (result.ok && result.file) {
             set({
               files: [result.file, ...state.files.filter((f) => f.id !== result.file.id)],
@@ -249,6 +252,7 @@ function createPanelStore(): PanelStore {
       } finally {
         if (state.open) set({ uploading: false });
       }
+      return results;
     },
     remove: async (id) => {
       if (!state.open) return;
@@ -802,6 +806,24 @@ type TurnTailProps = {
   panel: PanelStore;
 };
 
+/** 把 @文件路径 文本插入输入框（DSH 官方文件引用格式，模型发送时读取）。 */
+function insertFileMention(path: string): boolean {
+  const areas = Array.from(document.querySelectorAll("textarea")).filter(
+    (t) => (t as HTMLTextAreaElement).offsetParent !== null,
+  );
+  if (areas.length === 0) return false;
+  const ta = areas[0] as HTMLTextAreaElement;
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+  if (!setter) return false;
+  const mention = path.includes(" ") ? `@"${path}"` : `@${path}`;
+  const next = ta.value ? `${ta.value}\n${mention}` : mention;
+  setter.call(ta, next);
+  ta.dispatchEvent(new Event("input", { bubbles: true }));
+  ta.dispatchEvent(new Event("change", { bubbles: true }));
+  ta.focus();
+  return true;
+}
+
 /** 全局拖拽层：文件拖到窗口任意位置 → 提示 + 松手上传到当前会话。 */
 function GlobalDropLayer({ t, panel }: { t: (key: string) => string; panel: PanelStore }) {
   const [dragging, setDragging] = useState(false);
@@ -817,7 +839,15 @@ function GlobalDropLayer({ t, panel }: { t: (key: string) => string; panel: Pane
       if (!e.dataTransfer || e.dataTransfer.files.length === 0) return;
       e.preventDefault();
       setDragging(false);
-      if (currentSessionId) void panel.upload(e.dataTransfer.files, currentSessionId);
+      if (currentSessionId) {
+        void panel.upload(e.dataTransfer.files, currentSessionId).then((results) => {
+          // 上传成功 → 把 @文件路径 插入输入框，模型发送时直接读取
+          const paths = (results ?? [])
+            .filter((r) => r && r.ok && r.file && r.file.path)
+            .map((r) => r.file.path as string);
+          if (paths.length > 0) insertFileMention(paths.join(" "));
+        });
+      }
     };
     window.addEventListener("dragover", onDragOver);
     window.addEventListener("dragleave", onDragLeave);

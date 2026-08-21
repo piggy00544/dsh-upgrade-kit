@@ -189,15 +189,21 @@ function apply(ctx) {
           return;
         }
         const id = randomUUID();
+        const safeName = sanitizeName(url.searchParams.get("name"));
+        // 上传目录：绝对路径可被 @ 引用（模型直接读），文件名带时间戳防覆盖
+        const uploadsDir = join(homedir(), ".local", "share", "dsh-upgrade-kit", "uploads");
+        mkdirSync(uploadsDir, { recursive: true });
+        const path = join(uploadsDir, `${Date.now()}-${safeName}`);
         const row = {
           id,
-          name: sanitizeName(url.searchParams.get("name")),
+          name: safeName,
+          path,
           mediaType: String(url.searchParams.get("mediaType") ?? "application/octet-stream").slice(0, 128),
           bytes: body.length,
           time: Date.now(),
           sessionId: String(url.searchParams.get("sessionId") ?? "").slice(0, 128),
         };
-        writeFileSync(join(filesDir(), id), body);
+        writeFileSync(path, body);
         appendFileSync(indexPath(), JSON.stringify(row) + "\n");
         json(res, 200, { ok: true, file: row });
       },
