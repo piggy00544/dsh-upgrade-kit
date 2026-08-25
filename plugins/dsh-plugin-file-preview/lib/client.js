@@ -577,18 +577,19 @@ ${mention}` : mention;
 function GlobalDropLayer({ t, panel }) {
   let [dragging, setDragging] = (0, import_react.useState)(!1);
   return (0, import_react.useEffect)(() => {
-    let hasFiles = (e) => e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files"), onDragOver = (e) => {
-      hasFiles(e) && (e.preventDefault(), setDragging(!0));
+    let hasFiles = (e) => e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files"), nonImageFiles = (e) => Array.from(e.dataTransfer?.files ?? []).filter((f) => !f.type.startsWith("image/")), onDragOver = (e) => {
+      !hasFiles(e) || nonImageFiles(e).length === 0 || (e.preventDefault(), e.stopPropagation(), setDragging(!0));
     }, onDragLeave = (e) => {
       e.relatedTarget === null && setDragging(!1);
     }, onDrop = (e) => {
-      !e.dataTransfer || e.dataTransfer.files.length === 0 || (e.preventDefault(), setDragging(!1), currentSessionId && panel.upload(e.dataTransfer.files, currentSessionId).then((results) => {
+      let files = nonImageFiles(e);
+      files.length !== 0 && (e.preventDefault(), e.stopPropagation(), setDragging(!1), currentSessionId && panel.upload(files, currentSessionId).then((results) => {
         let paths = (results ?? []).filter((r) => r && r.ok && r.file && r.file.path).map((r) => r.file.path);
         paths.length > 0 && insertFileMention(paths.join(" "));
       }));
     };
-    return window.addEventListener("dragover", onDragOver), window.addEventListener("dragleave", onDragLeave), window.addEventListener("drop", onDrop), () => {
-      window.removeEventListener("dragover", onDragOver), window.removeEventListener("dragleave", onDragLeave), window.removeEventListener("drop", onDrop);
+    return window.addEventListener("dragover", onDragOver, !0), window.addEventListener("dragleave", onDragLeave, !0), window.addEventListener("drop", onDrop, !0), () => {
+      window.removeEventListener("dragover", onDragOver, !0), window.removeEventListener("dragleave", onDragLeave, !0), window.removeEventListener("drop", onDrop, !0);
     };
   }, [panel]), dragging ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: {
     position: "fixed",

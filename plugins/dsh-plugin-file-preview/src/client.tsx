@@ -829,18 +829,26 @@ function GlobalDropLayer({ t, panel }: { t: (key: string) => string; panel: Pane
   const [dragging, setDragging] = useState(false);
   useEffect(() => {
     const hasFiles = (e: DragEvent) => e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files");
+    // 只接管"含非图片文件"的拖拽；纯图片拖拽放行给官方输入框（原生图片消息体验）
+    const nonImageFiles = (e: DragEvent) =>
+      Array.from(e.dataTransfer?.files ?? []).filter((f) => !f.type.startsWith("image/"));
     const onDragOver = (e: DragEvent) => {
-      if (hasFiles(e)) { e.preventDefault(); setDragging(true); }
+      if (!hasFiles(e) || nonImageFiles(e).length === 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setDragging(true);
     };
     const onDragLeave = (e: DragEvent) => {
       if (e.relatedTarget === null) setDragging(false);
     };
     const onDrop = (e: DragEvent) => {
-      if (!e.dataTransfer || e.dataTransfer.files.length === 0) return;
+      const files = nonImageFiles(e);
+      if (files.length === 0) return;
       e.preventDefault();
+      e.stopPropagation();
       setDragging(false);
       if (currentSessionId) {
-        void panel.upload(e.dataTransfer.files, currentSessionId).then((results) => {
+        void panel.upload(files, currentSessionId).then((results) => {
           // 上传成功 → 把 @文件路径 插入输入框，模型发送时直接读取
           const paths = (results ?? [])
             .filter((r) => r && r.ok && r.file && r.file.path)
@@ -849,13 +857,14 @@ function GlobalDropLayer({ t, panel }: { t: (key: string) => string; panel: Pane
         });
       }
     };
-    window.addEventListener("dragover", onDragOver);
-    window.addEventListener("dragleave", onDragLeave);
-    window.addEventListener("drop", onDrop);
+    // 捕获阶段：抢在官方输入框的拖拽处理之前（官方只收图片，非图片会被它拒绝提示）
+    window.addEventListener("dragover", onDragOver, true);
+    window.addEventListener("dragleave", onDragLeave, true);
+    window.addEventListener("drop", onDrop, true);
     return () => {
-      window.removeEventListener("dragover", onDragOver);
-      window.removeEventListener("dragleave", onDragLeave);
-      window.removeEventListener("drop", onDrop);
+      window.removeEventListener("dragover", onDragOver, true);
+      window.removeEventListener("dragleave", onDragLeave, true);
+      window.removeEventListener("drop", onDrop, true);
     };
   }, [panel]);
   if (!dragging) return null;
