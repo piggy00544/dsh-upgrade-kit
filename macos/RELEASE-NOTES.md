@@ -1,10 +1,14 @@
-# DSH 装备版 v0.3.0（已公证）
+# DSH 装备版 v0.3.1（已公证）
 
-**下载：DSH-Upgrade-Kit-0.3.0.dmg**（macOS 13+，Apple Silicon）
+**下载：DSH-Upgrade-Kit-0.3.1.dmg**（macOS 13+，Apple Silicon）
 
 ✅ 本版已通过 **Apple 公证**（Developer ID: TECHBOOKS LTD）：下载 → 拖进 Applications → **双击直接打开**，无任何 Gatekeeper 拦截。
 
 给 DeepSeek Harness 的"开箱即用"安装包：双击装上，打开填一个 DeepSeek API key，五件装备全部就位，全程不碰终端。
+
+## v0.3.1 变更
+
+- **底层升级：DeepSeek Harness 0.1.1-rc.1 → 0.1.1-rc.2**（官方视觉通道优化：Files API 图像上传复用 + 按模型要求自动缩放/转格式；五装备回归通过）
 
 ## v0.3.0 变更
 
