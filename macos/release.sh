@@ -96,6 +96,6 @@ gh release create "v$VERSION" \
   "$RELEASE_DIR/$FEED_NAME" 2>&1 | tail -2
 
 echo "==> 7/7 桌面副本"
-cp "$DMG" "$HOME/Desktop/DSH 装备版 v$VERSION（公证版）.dmg"
+cp "$DMG" "$HOME/Desktop/DSH 版 v$VERSION（公证版）.dmg"
 echo "===== 发布完成 ====="
 echo "用户更新通道: https://github.com/piggy00544/dsh-upgrade-kit/releases/latest/download/appcast.xml"
