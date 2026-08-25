@@ -77,6 +77,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         if isFirstRun() {
             showWelcome()
         } else {
+            // 每次启动后台同步插件代码（first-run 幂等，升级 App 后插件修复随之生效）
+            DispatchQueue.global().async { [weak self] in
+                self?.runFirstSetup(key: "", baseURL: "", modelId: "", protocolName: "deepseek")
+            }
             startServerCheck()
         }
     }

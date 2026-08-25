@@ -1,10 +1,14 @@
-# DSH 装备版 v0.3.2（已公证）
+# DSH 装备版 v0.3.3（已公证）
 
-**下载：DSH-Upgrade-Kit-0.3.2.dmg**（macOS 13+，Apple Silicon）
+**下载：DSH-Upgrade-Kit-0.3.3.dmg**（macOS 13+，Apple Silicon）
 
 ✅ 本版已通过 **Apple 公证**（Developer ID: TECHBOOKS LTD）：下载 → 拖进 Applications → **双击直接打开**，无任何 Gatekeeper 拦截。
 
 给 DeepSeek Harness 的"开箱即用"安装包：双击装上，打开填一个 DeepSeek API key，五件装备全部就位，全程不碰终端。
+
+## v0.3.3 变更
+
+- **根因修复：插件代码同步机制**——此前升级只换 App 本体，home 目录里的插件实体停留在首次安装版本，导致拖拽等后续插件修复在老用户机器上不生效。现在 App 每次启动自动同步插件代码（幂等，不碰用户 key/配置/会话）
 
 ## v0.3.2 变更
 

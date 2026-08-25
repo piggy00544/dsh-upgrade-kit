@@ -26,6 +26,18 @@ else
   echo "· home 已存在，跳过拷贝"
 fi
 
+# ---- 2.5 插件代码同步（幂等）：升级 App 后插件修复随之生效，不碰用户数据 ----
+# web 插件实体
+cp -R "$TPL/profiles/web/node_modules/." "$HOME_DIR/profiles/web/node_modules/" 2>/dev/null || true
+# cordis patch（从模板恢复后再替换路径占位）
+cp "$TPL/profiles/web/cordis.patch.yml" "$HOME_DIR/profiles/web/cordis.patch.yml" 2>/dev/null || true
+# skills（vision-bridge 等）
+cp -R "$TPL/skills/." "$HOME_DIR/skills/" 2>/dev/null || true
+# headless bundle（含持久会话补丁）
+rm -rf "$HOME_DIR/profiles/headless/node_modules/@deepseek-ai/dsh-headless" 2>/dev/null || true
+cp -R "$TPL/profiles/headless/node_modules/." "$HOME_DIR/profiles/headless/node_modules/" 2>/dev/null || true
+echo "· 插件代码已同步（若 App 已更新）"
+
 # ---- 2. cordis.patch.yml 路径替换（幂等）----
 PATCH="$HOME_DIR/profiles/web/cordis.patch.yml"
 PLUGINS_DIR="$RES/plugins"
