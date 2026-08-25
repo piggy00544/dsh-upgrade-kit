@@ -37,6 +37,9 @@ cp -R "$TPL/skills/." "$HOME_DIR/skills/" 2>/dev/null || true
 rm -rf "$HOME_DIR/profiles/headless/node_modules/@deepseek-ai/dsh-headless" 2>/dev/null || true
 cp -R "$TPL/profiles/headless/node_modules/." "$HOME_DIR/profiles/headless/node_modules/" 2>/dev/null || true
 echo "· 插件代码已同步（若 App 已更新）"
+# 重启 web 服务让新插件代码生效（App 壳探测到掉线会自动重新拉起）
+pkill -f "DSH 装备版.app/Contents/MacOS/dsh web" 2>/dev/null || true
+launchctl kickstart -k "gui/$(id -u)/com.dsh-upgrade.dsh-web" 2>/dev/null || true
 
 # ---- 2. cordis.patch.yml 路径替换（幂等）----
 PATCH="$HOME_DIR/profiles/web/cordis.patch.yml"
