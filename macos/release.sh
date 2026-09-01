@@ -47,6 +47,12 @@ ditto -c -k --keepParent "$APP" "$RELEASE_DIR/DSH-Upgrade-Kit-$VERSION.zip"
 echo "    zip: DSH-Upgrade-Kit-$VERSION.zip ($(du -h "$RELEASE_DIR/DSH-Upgrade-Kit-$VERSION.zip" | cut -f1))"
 
 echo "==> 4/7 生成 appcast（文件版 Ed25519 私钥 + sign_update）"
+if [ ! -x "$SPARKLE_BIN/sign_update" ]; then
+  echo "    下载 Sparkle 工具…"
+  mkdir -p /tmp/sparkle
+  curl -sL -o /tmp/sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/2.9.6/Sparkle-2.9.6.tar.xz"
+  tar -xJf /tmp/sparkle.tar.xz -C /tmp/sparkle 2>/dev/null || true
+fi
 KEY_FILE="$HOME/.config/dsh-upgrade-keys/ed25519.raw.txt"
 [ -f "$KEY_FILE" ] || { echo "    缺裸私钥 $KEY_FILE（见 release 文档）"; exit 1; }
 SIG=$(cd "$RELEASE_DIR" && "$SPARKLE_BIN/sign_update" "DSH-Upgrade-Kit-$VERSION.zip" --ed-key-file "$KEY_FILE" | head -1)
