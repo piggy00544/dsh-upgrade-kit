@@ -1,10 +1,14 @@
-# DSH 装备版 v0.3.4（已公证）
+# DSH 装备版 v0.3.5（已公证）
 
-**下载：DSH-Upgrade-Kit-0.3.4.dmg**（macOS 13+，Apple Silicon）
+**下载：DSH-Upgrade-Kit-0.3.5.dmg**（macOS 13+，Apple Silicon）
 
 ✅ 本版已通过 **Apple 公证**（Developer ID: TECHBOOKS LTD）：下载 → 拖进 Applications → **双击直接打开**，无任何 Gatekeeper 拦截。
 
 给 DeepSeek Harness 的"开箱即用"安装包：双击装上，打开填一个 DeepSeek API key，五件装备全部就位，全程不碰终端。
+
+## v0.3.5 变更
+
+- 修复拖拽蒙层卡死：dragenter 也接管（官方"图片，拖到此处即可添加"蒙层不再出现，也不会因 drop 被接管而卡住关不掉）
 
 ## v0.3.4 变更
 

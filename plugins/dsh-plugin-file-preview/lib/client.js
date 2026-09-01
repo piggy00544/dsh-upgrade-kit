@@ -577,10 +577,12 @@ ${mention}` : mention;
 function GlobalDropLayer({ t, panel }) {
   let [dragging, setDragging] = (0, import_react.useState)(!1);
   return (0, import_react.useEffect)(() => {
-    let hasFiles = (e) => e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files"), nonImageFiles = (e) => Array.from(e.dataTransfer?.files ?? []).filter((f) => !f.type.startsWith("image/")), onDragOver = (e) => {
+    let hasFiles = (e) => e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files"), nonImageFiles = (e) => Array.from(e.dataTransfer?.files ?? []).filter((f) => !f.type.startsWith("image/")), onDragEnter = (e) => {
+      !hasFiles(e) || nonImageFiles(e).length === 0 || (e.preventDefault(), e.stopPropagation(), setDragging(!0));
+    }, onDragOver = (e) => {
       !hasFiles(e) || nonImageFiles(e).length === 0 || (e.preventDefault(), e.stopPropagation(), setDragging(!0));
     }, onDragLeave = (e) => {
-      e.relatedTarget === null && setDragging(!1);
+      hasFiles(e) && nonImageFiles(e).length > 0 && e.stopPropagation(), e.relatedTarget === null && setDragging(!1);
     }, onDrop = (e) => {
       let files = nonImageFiles(e);
       files.length !== 0 && (e.preventDefault(), e.stopPropagation(), setDragging(!1), currentSessionId && panel.upload(files, currentSessionId).then((results) => {
@@ -588,8 +590,8 @@ function GlobalDropLayer({ t, panel }) {
         paths.length > 0 && insertFileMention(paths.join(" "));
       }));
     };
-    return window.addEventListener("dragover", onDragOver, !0), window.addEventListener("dragleave", onDragLeave, !0), window.addEventListener("drop", onDrop, !0), () => {
-      window.removeEventListener("dragover", onDragOver, !0), window.removeEventListener("dragleave", onDragLeave, !0), window.removeEventListener("drop", onDrop, !0);
+    return window.addEventListener("dragenter", onDragEnter, !0), window.addEventListener("dragover", onDragOver, !0), window.addEventListener("dragleave", onDragLeave, !0), window.addEventListener("drop", onDrop, !0), () => {
+      window.removeEventListener("dragenter", onDragEnter, !0), window.removeEventListener("dragover", onDragOver, !0), window.removeEventListener("dragleave", onDragLeave, !0), window.removeEventListener("drop", onDrop, !0);
     };
   }, [panel]), dragging ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: {
     position: "fixed",

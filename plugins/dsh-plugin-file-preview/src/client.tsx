@@ -832,6 +832,13 @@ function GlobalDropLayer({ t, panel }: { t: (key: string) => string; panel: Pane
     // 只接管"含非图片文件"的拖拽；纯图片拖拽放行给官方输入框（原生图片消息体验）
     const nonImageFiles = (e: DragEvent) =>
       Array.from(e.dataTransfer?.files ?? []).filter((f) => !f.type.startsWith("image/"));
+    const onDragEnter = (e: DragEvent) => {
+      if (!hasFiles(e) || nonImageFiles(e).length === 0) return;
+      // 阻止官方输入框显示它的拖拽蒙层（其 drop 被我们接管后会卡住关不掉）
+      e.preventDefault();
+      e.stopPropagation();
+      setDragging(true);
+    };
     const onDragOver = (e: DragEvent) => {
       if (!hasFiles(e) || nonImageFiles(e).length === 0) return;
       e.preventDefault();
@@ -839,6 +846,7 @@ function GlobalDropLayer({ t, panel }: { t: (key: string) => string; panel: Pane
       setDragging(true);
     };
     const onDragLeave = (e: DragEvent) => {
+      if (hasFiles(e) && nonImageFiles(e).length > 0) e.stopPropagation();
       if (e.relatedTarget === null) setDragging(false);
     };
     const onDrop = (e: DragEvent) => {
@@ -858,10 +866,12 @@ function GlobalDropLayer({ t, panel }: { t: (key: string) => string; panel: Pane
       }
     };
     // 捕获阶段：抢在官方输入框的拖拽处理之前（官方只收图片，非图片会被它拒绝提示）
+    window.addEventListener("dragenter", onDragEnter, true);
     window.addEventListener("dragover", onDragOver, true);
     window.addEventListener("dragleave", onDragLeave, true);
     window.addEventListener("drop", onDrop, true);
     return () => {
+      window.removeEventListener("dragenter", onDragEnter, true);
       window.removeEventListener("dragover", onDragOver, true);
       window.removeEventListener("dragleave", onDragLeave, true);
       window.removeEventListener("drop", onDrop, true);
