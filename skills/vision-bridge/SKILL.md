@@ -1,9 +1,9 @@
 ---
 name: vision-bridge
-description: 给无视觉文本模型桥接看图能力。Use whenever I need to see or understand any image — screenshots, UI 截图, OCR, 文档/报表/发票截图, charts, error screenshots, ego-browser captureScreenshot 产物, 或用户说 读图/看图/识别/OCR/这张图/截图里有什么。Runs the local scripts/vision.mjs CLI, which sends the image to a cloud vision model (default Alibaba Qwen3-VL-Flash) and returns text.
+description: 给无视觉文本模型桥接看图能力。Use whenever I need to see or understand any image — screenshots, UI 截图, OCR, 文档/报表/发票截图, charts, error screenshots, ego-browser page.screenshot() 产物, 或用户说 读图/看图/识别/OCR/这张图/截图里有什么。Runs the local scripts/vision.mjs CLI, which sends the image to a cloud vision model (default Alibaba Qwen3-VL-Flash) and returns text.
 metadata:
-  version: "0.1.0"
-  date: "2026-08-19"
+  version: "0.1.1"
+  date: "2026-09-09"
   upstream: "JochenYang/luma-mcp (MIT)"
 ---
 
@@ -40,7 +40,8 @@ node ~/.agents/skills/vision-bridge/scripts/vision.mjs "<图片路径|URL|dataUR
 | auto（默认） | 按问题关键词自动路由 |
 
 - ui 模式输出的 `<|box_start|>(x1,y1),(x2,y2)<|box_end|>` 是 0-1000 归一化坐标；换算成视图像素: `px = v / 1000 × 图像宽(或高)`，点击目标取 box 中心。
-- 配合 ego-browser 视觉工作流：captureScreenshot → 本脚本 --mode ui → 用 pageInfo() 拿 w/h → 换算坐标 → click([x,y])。截图前先 `await pageInfo()` 确认 w/h 非 0。
+- 配合 ego-browser 视觉工作流（v2 API）：`page.screenshot({ path })` → 本脚本 --mode ui → 用 `page.info()` 拿 viewport w/h → 换算坐标 → `page.mouse.click(x, y, { label })`。截图前先 `await page.info()` 确认 viewport w/h 非 0。
+- 语义页面不要走视觉坐标：先 `page.snapshot()`，用 `@ref` / `loc=role:` / `loc=css:` 直接点。只有 canvas、富文本、表格、地图等缺少 DOM 语义的界面才用截图 + 坐标。
 
 ## 规则
 

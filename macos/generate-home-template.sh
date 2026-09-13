@@ -6,7 +6,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 KIT_ROOT="$(cd "$HERE/.." && pwd)"
 TPL="$HERE/home-template"
-DSH_PKG="/Users/shan/Library/Application Support/DeepSeek Harness Lab/npm-rc8/lib/node_modules/@deepseek-ai/dsh"
+DSH_PKG="${DSH_PKG_PREFIX:-/Users/shan/Library/Application Support/DeepSeek Harness Lab/npm-rc10}/lib/node_modules/@deepseek-ai/dsh"
 
 rm -rf "$TPL"
 mkdir -p "$TPL/profiles/web" "$TPL/profiles/headless" "$TPL/skills" "$TPL/logs"
@@ -24,7 +24,7 @@ permission:
 YAML
 
 # key 占位（首次启动向导写入真实值）
-printf 'DEEPSEEK_API_KEY: \n' > "$TPL/.credentials.yaml"
+printf 'version: 1\nrefs:\n  DEEPSEEK_API_KEY: \n' > "$TPL/.credentials.yaml"
 chmod 600 "$TPL/.credentials.yaml"
 
 # ---- 2. web profile ----
@@ -49,11 +49,6 @@ cat > "$TPL/profiles/web/cordis.patch.yml" <<'YAML'
           - '__PLUGINS_DIR__/research-mcp/server.mjs'
         toolCallTimeoutMs: 90000
         failOnStartupError: false
-
-# 会话附件预览：会话头部"附件"按钮 → 右侧预览面板（附件列表 + 按类型预览）。
-- insert:
-    - id: file-preview
-      name: 'dsh-plugin-file-preview'
 
 # 用量与费用面板：侧栏底部 ¥ 按钮 → 仪表盘（余额 + token + 峰谷计价）。
 - insert:
@@ -89,9 +84,9 @@ autoInstallPeers: false
 YAML
 
 # 插件实体（手摆 node_modules，不依赖 pnpm/link）
-mkdir -p "$TPL/profiles/web/node_modules/dsh-cost" "$TPL/profiles/web/node_modules/dsh-plugin-file-preview"
+# 说明：file-preview 已退役（0.1.5 官方原生支持任意文件上传 + Sidebar 多标签预览），不再预装
+mkdir -p "$TPL/profiles/web/node_modules/dsh-cost"
 cp -R "$KIT_ROOT/plugins/dsh-cost/." "$TPL/profiles/web/node_modules/dsh-cost/"
-cp -R "$KIT_ROOT/plugins/dsh-plugin-file-preview/." "$TPL/profiles/web/node_modules/dsh-plugin-file-preview/"
 
 # ---- 3. headless profile（微信桥的固定会话补丁打在实体上）----
 cat > "$TPL/profiles/headless/cordis.yml" <<'YAML'
@@ -118,12 +113,8 @@ mkdir -p "$TPL/profiles/headless/node_modules/@deepseek-ai"
 cp -R "$DSH_PKG/node_modules/@deepseek-ai/dsh-headless" "$TPL/profiles/headless/node_modules/@deepseek-ai/dsh-headless"
 # 打固定会话补丁（微信桥持久记忆）
 HEADLESS_IDX="$TPL/profiles/headless/node_modules/@deepseek-ai/dsh-headless/lib/index.js"
-if grep -q "DSH_HEADLESS_SESSION_ID" "$HEADLESS_IDX"; then
-  echo "✔ headless 补丁已存在"
-else
-  sed -i '' 's|sessionId: SessionId(`session-${randomUUID()}`),|sessionId: SessionId(process.env.DSH_HEADLESS_SESSION_ID \|\| `session-${randomUUID()}`),|' "$HEADLESS_IDX"
-  echo "✔ headless 补丁已打"
-fi
+# 用 patch-headless.mjs（正则兼容上游改名：SessionId → brandString 等）
+node "$KIT_ROOT/plugins/wechat-bridge/patch-headless.mjs" --file "$HEADLESS_IDX" || echo "⚠️ headless 补丁失败（微信桥持久记忆会失效）"
 
 # ---- 4. skills：vision-bridge ----
 cp -R "$KIT_ROOT/skills/vision-bridge" "$TPL/skills/vision-bridge"

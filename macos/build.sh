@@ -6,7 +6,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 KIT_ROOT="$(cd "$HERE/.." && pwd)"
 APP_NAME="DSH 装备版"
 APP="$HERE/dist/$APP_NAME.app"
-DSH_PKG_PREFIX="/Users/shan/Library/Application Support/DeepSeek Harness Lab/npm-rc9"
+DSH_PKG_PREFIX="/Users/shan/Library/Application Support/DeepSeek Harness Lab/npm-rc10"
 NODE_TAR="/tmp/node-v22.22.0-darwin-arm64.tar.xz"
 VERSION="${VERSION:-0.2.0}"
 

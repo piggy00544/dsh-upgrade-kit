@@ -1,10 +1,19 @@
-# DSH 装备版 v0.3.5（已公证）
+# DSH 装备版 v0.4.0（已公证）
 
-**下载：DSH-Upgrade-Kit-0.3.5.dmg**（macOS 13+，Apple Silicon）
+**下载：DSH-Upgrade-Kit-0.4.0.dmg**（macOS 13+，Apple Silicon）
 
 ✅ 本版已通过 **Apple 公证**（Developer ID: TECHBOOKS LTD）：下载 → 拖进 Applications → **双击直接打开**，无任何 Gatekeeper 拦截。
 
 给 DeepSeek Harness 的"开箱即用"安装包：双击装上，打开填一个 DeepSeek API key，五件装备全部就位，全程不碰终端。
+
+## v0.4.0 变更
+
+- **底层大版本升级：DeepSeek Harness 0.1.1-rc.2 → 0.1.5-rc.2**（跨 4 个版本）
+- **装备清单精简为官方没有的三件套**：费用面板（dsh-cost）、外网搜集（research-mcp）、微信双向通道
+  - file-preview **退役**：0.1.5 官方已原生支持任意文件上传（进度/取消/会话切换续显，模型可按路径读取）+ 右侧 Sidebar 多标签预览（Markdown/代码/HTML/PDF/图片）+ 交付文件卡片，与官方重复且拖拽逻辑会冲突
+  - vision-bridge 降为**兜底**：官方 V4.1 Flash 已原生视觉，仅在切到无视觉模型时使用
+- **老用户自动迁移**：0.1.5 起 `.credentials.yaml` 要求 `version: 1` + `refs:` 嵌套，旧平铺格式会导致服务无法启动——App 启动时自动迁移（实测通过）
+- headless 持久会话补丁适配上游改名（SessionId → brandString），改为正则兼容
 
 ## v0.3.5 变更
 

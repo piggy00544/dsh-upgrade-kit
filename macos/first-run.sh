@@ -36,6 +36,31 @@ cp -R "$TPL/skills/." "$HOME_DIR/skills/" 2>/dev/null || true
 # headless bundle（含持久会话补丁）
 rm -rf "$HOME_DIR/profiles/headless/node_modules/@deepseek-ai/dsh-headless" 2>/dev/null || true
 cp -R "$TPL/profiles/headless/node_modules/." "$HOME_DIR/profiles/headless/node_modules/" 2>/dev/null || true
+# 旧版 flat credentials（0.1.5 起要求 version: 1 + refs:）自动迁移
+python3 - "$HOME_DIR/.credentials.yaml" <<'PYM'
+import sys, os
+p = sys.argv[1]
+if not os.path.exists(p):
+    sys.exit(0)
+s = open(p).read()
+if "version:" in s:
+    sys.exit(0)
+pairs = []
+for ln in s.split("\n"):
+    ln = ln.strip()
+    if not ln or ln.startswith("#") or ":" not in ln:
+        continue
+    k, v = ln.split(":", 1)
+    pairs.append((k.strip(), v.strip()))
+if not pairs:
+    sys.exit(0)
+out = ["version: 1", "refs:"]
+for k, v in pairs:
+    out.append(f"  {k}: {v}")
+open(p, "w").write("\n".join(out) + "\n")
+os.chmod(p, 0o600)
+print(f"· credentials 已迁移到 version:1（{len(pairs)} 条）")
+PYM
 echo "· 插件代码已同步（若 App 已更新）"
 # 重启 web 服务让新插件代码生效（App 壳探测到掉线会自动重新拉起）
 pkill -f "DSH 装备版.app/Contents/MacOS/dsh web" 2>/dev/null || true
@@ -89,7 +114,7 @@ PY
     ROUTE="internal"
     CRED_ENV="INTERNAL_API_KEY"
     # 凭据：只写协议对应的环境变量名
-    printf '%s: %s\n' "$CRED_ENV" "$API_KEY" > "$HOME_DIR/.credentials.yaml"
+    printf 'version: 1\nrefs:\n  %s: %s\n' "$CRED_ENV" "$API_KEY" > "$HOME_DIR/.credentials.yaml"
     chmod 600 "$HOME_DIR/.credentials.yaml"
     {
       echo ""
